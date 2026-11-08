@@ -7,10 +7,15 @@
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
     <!-- Chart.js & Date Adapters -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    
+    <!-- Touch Gestures & Pinch-to-Zoom Plugins -->
+    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
     
     <style>
         body { background-color: #0b1120; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
@@ -19,24 +24,39 @@
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
         .btn-toggle { background: #1e293b; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid #334155; transition: all 0.2s; }
         .btn-toggle:active { background: #334155; }
+        .filter-btn { padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: rgba(30, 41, 59, 0.8); border: 1px solid #334155; color: #94a3b8; transition: all 0.2s; white-space: nowrap; }
+        .filter-btn.active { background: #4f46e5; color: #fff; border-color: #6366f1; }
     </style>
 </head>
 <body class="antialiased pb-24">
 
     <!-- Sticky Header -->
-    <header class="sticky top-0 z-50 glass-card mx-4 mt-4 px-5 py-4 shadow-2xl flex justify-between items-center">
-        <div>
-            <h1 class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">Sambhaji's Smart Home</h1>
-            <p class="text-xs text-slate-400 mt-1"><span id="liveDate">--</span> • <span id="liveClock" class="font-mono">--:--:--</span></p>
-        </div>
-        <div class="flex flex-col items-end gap-2">
-            <button onclick="fetchSensorData(true)" class="bg-indigo-500 hover:bg-indigo-400 text-white text-xs px-3 py-1.5 rounded-full shadow-lg font-semibold flex items-center gap-1 active:scale-95 transition">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Refresh
-            </button>
-            <div class="flex items-center gap-1.5">
-                <div id="statusDot" class="h-2 w-2 rounded-full bg-slate-500"></div>
-                <span id="lastUpdated" class="text-[10px] text-slate-400 uppercase tracking-wide">Waiting...</span>
+    <header class="sticky top-0 z-50 glass-card mx-4 mt-4 px-5 py-4 shadow-2xl flex flex-col gap-3">
+        <div class="flex justify-between items-center">
+            <div>
+                <h1 class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">Sambhaji's Smart Home</h1>
+                <p class="text-xs text-slate-400 mt-1"><span id="liveDate">--</span> • <span id="liveClock" class="font-mono">--:--:--</span></p>
             </div>
+            <div class="flex flex-col items-end gap-2">
+                <button onclick="fetchSensorData(true)" class="bg-indigo-500 hover:bg-indigo-400 text-white text-xs px-3 py-1.5 rounded-full shadow-lg font-semibold flex items-center gap-1 active:scale-95 transition">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Refresh
+                </button>
+                <div class="flex items-center gap-1.5">
+                    <div id="statusDot" class="h-2 w-2 rounded-full bg-slate-500"></div>
+                    <span id="lastUpdated" class="text-[10px] text-slate-400 uppercase tracking-wide">Waiting...</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Date Filters & Zoom Reset -->
+        <div class="flex items-center justify-between overflow-x-auto hide-scroll gap-2 pb-1">
+            <div class="flex gap-2">
+                <button onclick="setFilter('today')" id="flt-today" class="filter-btn active">Today</button>
+                <button onclick="setFilter('yesterday')" id="flt-yesterday" class="filter-btn">Yesterday</button>
+                <button onclick="setFilter('3days')" id="flt-3days" class="filter-btn">3 Days</button>
+                <button onclick="setFilter('7days')" id="flt-7days" class="filter-btn">7 Days</button>
+            </div>
+            <button onclick="resetAllZooms()" class="text-[10px] bg-slate-700 px-2 py-1 rounded text-slate-300 ml-2 whitespace-nowrap active:bg-slate-600">Reset Zoom</button>
         </div>
     </header>
 
@@ -45,7 +65,7 @@
         <!-- Offline / Power Cut Alerts -->
         <section id="alertsSection" class="hidden">
             <div class="glass-card p-4 border border-rose-500/30 bg-rose-500/5">
-                <h2 class="text-sm font-bold text-rose-400 mb-2 flex items-center gap-2">⚠️ Power/Network Gaps Detected</h2>
+                <h2 class="text-sm font-bold text-rose-400 mb-2 flex items-center gap-2">⚠️ Offline Gaps Detected</h2>
                 <ul id="alertsList" class="space-y-1 text-xs text-rose-200/80 font-mono"></ul>
             </div>
         </section>
@@ -56,7 +76,6 @@
                 <h2 class="text-lg font-semibold text-blue-300 flex items-center gap-2">🛋️ Indoor (AHT10)</h2>
                 <button onclick="toggleView('aht10')" class="btn-toggle">Table / Graph</button>
             </div>
-            <!-- Analytics Bar -->
             <div class="grid grid-cols-2 gap-3 mb-4">
                 <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
                     <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Temp (Avg/Hi/Lo)</p>
@@ -69,7 +88,6 @@
                     <p class="text-[10px] mt-1" id="ahtHTrend">--</p>
                 </div>
             </div>
-            <!-- Graph / Table -->
             <div id="aht10-graph" class="h-56 relative w-full"><canvas id="chart-aht10"></canvas></div>
             <div id="aht10-table" class="hidden max-h-56 overflow-y-auto hide-scroll text-xs">
                 <table class="w-full text-left border-collapse"><thead class="sticky top-0 bg-slate-800"><tr><th class="p-2">Time</th><th class="p-2">Temp °C</th><th class="p-2">Hum %</th></tr></thead><tbody id="aht10-tbody" class="divide-y divide-slate-700/50"></tbody></table>
@@ -82,7 +100,6 @@
                 <h2 class="text-lg font-semibold text-emerald-300 flex items-center gap-2">🌤️ Outdoor (DHT11)</h2>
                 <button onclick="toggleView('dht11')" class="btn-toggle">Table / Graph</button>
             </div>
-            <!-- Analytics Bar -->
             <div class="grid grid-cols-2 gap-3 mb-4">
                 <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
                     <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Temp (Avg/Hi/Lo)</p>
@@ -147,7 +164,6 @@
         <!-- 5. LD2420 Radar -->
         <section class="glass-card p-5">
             <h2 class="text-lg font-semibold text-amber-300 mb-2">📡 Radar Presence</h2>
-            <p class="text-[10px] text-slate-400 mb-3">Scatter plot of movement events. Points closer to 0 indicate physical proximity.</p>
             <div class="h-48 relative w-full"><canvas id="chart-radar"></canvas></div>
         </section>
 
@@ -167,11 +183,14 @@
 
     <script>
         // ==========================================
-        // 1. CONFIGURATION (PASTE YOUR APP SCRIPT URL HERE)
+        // 1. CONFIGURATION
         // ==========================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbw2Bjus_9AuJaEjxbZ7_9xT8JfJZBzQ9-nbphPTS3LJVAHrpzZM0CasVINFt8JxKxI/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbw2Bjus_9AuJaEjxbZ7_9xT8JfJZBzQ9-nbphPTS3LJVAHrpzZM0CasVINFt8JxKxI/exec"; 
         
         const charts = {};
+        let globalDataPoints = [];
+        let globalGaps = [];
+        let currentFilterMode = 'today';
 
         // Live Clock Logic
         setInterval(() => {
@@ -181,7 +200,7 @@
         }, 1000);
 
         // ==========================================
-        // 2. DATA FETCH & PARSING
+        // 2. DATA FETCH & FILTERING
         // ==========================================
         async function fetchSensorData(manual = false) {
             const status = document.getElementById('lastUpdated');
@@ -194,8 +213,11 @@
                 const response = await fetch(API_URL);
                 const rawSheetData = await response.json();
                 
-                const {dataPoints, gaps} = parseGoogleSheetFormat(rawSheetData);
-                updateDashboards(dataPoints, gaps);
+                const parsed = parseGoogleSheetFormat(rawSheetData);
+                globalDataPoints = parsed.dataPoints;
+                globalGaps = parsed.gaps;
+                
+                applyFilterAndUpdate();
                 
                 status.innerText = manual ? "MANUAL REFRESH OK" : "AUTO REFRESH OK";
                 dot.className = "h-2 w-2 rounded-full bg-emerald-500";
@@ -204,6 +226,37 @@
                 status.innerText = "OFFLINE";
                 dot.className = "h-2 w-2 rounded-full bg-rose-500";
             }
+        }
+
+        function setFilter(mode) {
+            currentFilterMode = mode;
+            ['today', 'yesterday', '3days', '7days'].forEach(id => {
+                document.getElementById('flt-' + id).classList.remove('active');
+            });
+            document.getElementById('flt-' + mode).classList.add('active');
+            applyFilterAndUpdate();
+        }
+
+        function applyFilterAndUpdate() {
+            let start = new Date();
+            let end = new Date();
+            
+            if (currentFilterMode === 'today') {
+                start.setHours(0,0,0,0);
+                end.setHours(23,59,59,999);
+            } else if (currentFilterMode === 'yesterday') {
+                start.setDate(start.getDate() - 1); start.setHours(0,0,0,0);
+                end.setDate(end.getDate() - 1); end.setHours(23,59,59,999);
+            } else if (currentFilterMode === '3days') {
+                start.setDate(start.getDate() - 2); start.setHours(0,0,0,0);
+            } else if (currentFilterMode === '7days') {
+                start.setDate(start.getDate() - 6); start.setHours(0,0,0,0);
+            }
+
+            const filteredPoints = globalDataPoints.filter(p => p.time >= start && p.time <= end);
+            const filteredGaps = globalGaps.filter(g => g.end >= start && g.start <= end);
+            
+            updateDashboards(filteredPoints, filteredGaps, currentFilterMode);
         }
 
         function parseGoogleSheetFormat(rows) {
@@ -215,7 +268,6 @@
                     const cell = row[i];
                     if (!cell || typeof cell !== 'string') continue;
                     
-                    // Gap Parsing for Red Lines
                     if (cell.startsWith('|')) {
                         const gapMatch = cell.match(/\| (\d{12})-(\d{12}) \|/);
                         if (gapMatch) {
@@ -228,10 +280,8 @@
                     if (cell.startsWith('[')) {
                         const timeMatch = cell.match(/\[(\d{14})\]/);
                         if (!timeMatch) continue;
-                        
                         const ts = timeMatch[1];
                         const dateObj = new Date(ts.slice(4,8), parseInt(ts.slice(2,4))-1, ts.slice(0,2), ts.slice(8,10), ts.slice(10,12), ts.slice(12,14));
-                        
                         const extract = (regex) => { const m = cell.match(regex); return m ? parseFloat(m[1]) : null; };
 
                         dataPoints.push({
@@ -259,70 +309,54 @@
         function calcStats(array) {
             const valid = array.filter(v => v !== null && !isNaN(v));
             if(valid.length === 0) return {max:'--', min:'--', avg:'--'};
-            return {
-                max: Math.max(...valid).toFixed(1),
-                min: Math.min(...valid).toFixed(1),
-                avg: (valid.reduce((a,b)=>a+b,0)/valid.length).toFixed(1)
-            };
+            return { max: Math.max(...valid).toFixed(1), min: Math.min(...valid).toFixed(1), avg: (valid.reduce((a,b)=>a+b,0)/valid.length).toFixed(1) };
         }
 
         function calcTrend(dataPoints, key) {
             if(dataPoints.length < 5) return {text: '--', color: 'text-slate-400'};
             const latest = dataPoints[dataPoints.length-1][key];
-            // Get a point roughly 1 hour ago (30 readings ago at 2min intervals)
             const oldIndex = Math.max(0, dataPoints.length - 30);
             const old = dataPoints[oldIndex][key];
             if(latest === null || old === null) return {text: '--', color: 'text-slate-400'};
             
             const diff = (latest - old).toFixed(1);
-            if(diff > 0.5) return {text: `▲ +${diff} (1hr)`, color: 'text-rose-400'};
-            if(diff < -0.5) return {text: `▼ ${diff} (1hr)`, color: 'text-blue-400'};
-            return {text: `▶ Flat (1hr)`, color: 'text-slate-400'};
+            if(diff > 0.5) return {text: `▲ +${diff}`, color: 'text-rose-400'};
+            if(diff < -0.5) return {text: `▼ ${diff}`, color: 'text-blue-400'};
+            return {text: `▶ Flat`, color: 'text-slate-400'};
         }
 
-        function updateDashboards(dataPoints, gaps) {
-            // Filter to today
-            const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-            const todayEnd = new Date(); todayEnd.setHours(23,59,59,999);
-            const todayData = dataPoints.filter(d => d.time >= todayStart);
-            const todayGaps = gaps.filter(g => g.end >= todayStart);
-
-            // Populate Gaps Alert UI
+        function updateDashboards(viewData, viewGaps, filterMode) {
             const alertsSection = document.getElementById('alertsSection');
             const alertsList = document.getElementById('alertsList');
             alertsList.innerHTML = '';
-            if (todayGaps.length > 0) {
+            if (viewGaps.length > 0) {
                 alertsSection.classList.remove('hidden');
-                todayGaps.forEach(gap => {
-                    alertsList.innerHTML += `<li>• Offline: ${gap.start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ➔ ${gap.end.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</li>`;
+                viewGaps.forEach(gap => {
+                    alertsList.innerHTML += `<li>• Offline: ${gap.start.toLocaleDateString()} ${gap.start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ➔ ${gap.end.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</li>`;
                 });
-            } else {
-                alertsSection.classList.add('hidden');
-            }
+            } else { alertsSection.classList.add('hidden'); }
 
-            // Stats Calculations
-            if(todayData.length > 0) {
-                const ahtT = calcStats(todayData.map(d=>d.ahtTemp)); document.getElementById('ahtTAvg').innerText = ahtT.avg; document.getElementById('ahtTHi').innerText = ahtT.max; document.getElementById('ahtTLo').innerText = ahtT.min;
-                const ahtH = calcStats(todayData.map(d=>d.ahtHum)); document.getElementById('ahtHAvg').innerText = Math.round(ahtH.avg); document.getElementById('ahtHHi').innerText = Math.round(ahtH.max); document.getElementById('ahtHLo').innerText = Math.round(ahtH.min);
+            if(viewData.length > 0) {
+                const ahtT = calcStats(viewData.map(d=>d.ahtTemp)); document.getElementById('ahtTAvg').innerText = ahtT.avg; document.getElementById('ahtTHi').innerText = ahtT.max; document.getElementById('ahtTLo').innerText = ahtT.min;
+                const ahtH = calcStats(viewData.map(d=>d.ahtHum)); document.getElementById('ahtHAvg').innerText = Math.round(ahtH.avg); document.getElementById('ahtHHi').innerText = Math.round(ahtH.max); document.getElementById('ahtHLo').innerText = Math.round(ahtH.min);
                 
-                const tt = calcTrend(todayData, 'ahtTemp'); document.getElementById('ahtTTrend').innerText = tt.text; document.getElementById('ahtTTrend').className = `text-[10px] mt-1 font-semibold ${tt.color}`;
-                const ht = calcTrend(todayData, 'ahtHum'); document.getElementById('ahtHTrend').innerText = ht.text; document.getElementById('ahtHTrend').className = `text-[10px] mt-1 font-semibold ${ht.color}`;
+                const tt = calcTrend(viewData, 'ahtTemp'); document.getElementById('ahtTTrend').innerText = tt.text; document.getElementById('ahtTTrend').className = `text-[10px] mt-1 font-semibold ${tt.color}`;
+                const ht = calcTrend(viewData, 'ahtHum'); document.getElementById('ahtHTrend').innerText = ht.text; document.getElementById('ahtHTrend').className = `text-[10px] mt-1 font-semibold ${ht.color}`;
 
-                const dhtT = calcStats(todayData.map(d=>d.dhtTemp)); document.getElementById('dhtTAvg').innerText = dhtT.avg; document.getElementById('dhtTHi').innerText = dhtT.max; document.getElementById('dhtTLo').innerText = dhtT.min;
-                const dhtH = calcStats(todayData.map(d=>d.dhtHum)); document.getElementById('dhtHAvg').innerText = Math.round(dhtH.avg); document.getElementById('dhtHHi').innerText = Math.round(dhtH.max); document.getElementById('dhtHLo').innerText = Math.round(dhtH.min);
+                const dhtT = calcStats(viewData.map(d=>d.dhtTemp)); document.getElementById('dhtTAvg').innerText = dhtT.avg; document.getElementById('dhtTHi').innerText = dhtT.max; document.getElementById('dhtTLo').innerText = dhtT.min;
+                const dhtH = calcStats(viewData.map(d=>d.dhtHum)); document.getElementById('dhtHAvg').innerText = Math.round(dhtH.avg); document.getElementById('dhtHHi').innerText = Math.round(dhtH.max); document.getElementById('dhtHLo').innerText = Math.round(dhtH.min);
 
-                const ds = calcStats(todayData.map(d=>d.dsTemp)); document.getElementById('dsMax').innerText = ds.max + ' °C';
+                const ds = calcStats(viewData.map(d=>d.dsTemp)); document.getElementById('dsMax').innerText = ds.max + ' °C';
                 const coreBadge = document.getElementById('coreStatus');
                 if (parseFloat(ds.max) > 50) { coreBadge.innerText = "WARNING: HOT"; coreBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500 text-white animate-pulse"; } 
                 else { coreBadge.innerText = "SAFE"; coreBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/50"; }
 
-                const bmp = calcStats(todayData.map(d=>d.pressure)); document.getElementById('bmpPAvg').innerText = bmp.avg;
-                const alt = calcStats(todayData.map(d=>d.altitude)); document.getElementById('bmpAAvg').innerText = alt.avg;
+                const bmp = calcStats(viewData.map(d=>d.pressure)); document.getElementById('bmpPAvg').innerText = bmp.avg;
+                const alt = calcStats(viewData.map(d=>d.altitude)); document.getElementById('bmpAAvg').innerText = alt.avg;
 
-                // Tables
                 const buildTable = (tbodyId, colsFn) => {
                     let html = '';
-                    [...todayData].reverse().forEach(d => { html += `<tr><td class="p-2 text-slate-400">${d.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>${colsFn(d)}</tr>`; });
+                    [...viewData].reverse().forEach(d => { html += `<tr><td class="p-2 text-slate-400">${d.time.toLocaleDateString([],{day:'numeric',month:'short'})} ${d.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>${colsFn(d)}</tr>`; });
                     document.getElementById(tbodyId).innerHTML = html;
                 };
                 buildTable('aht10-tbody', d => `<td class="p-2">${d.ahtTemp||'-'}</td><td class="p-2">${d.ahtHum||'-'}</td>`);
@@ -332,79 +366,88 @@
             }
 
             // ==========================================
-            // 4. CHART.JS CONFIGURATION
+            // 4. CHART.JS CONFIGURATION (AUTO-SCALING & ZOOM)
             // ==========================================
             Chart.defaults.color = '#94a3b8';
             Chart.defaults.font.family = 'inherit';
             
-            // Forces the X axis to span exactly Midnight to Midnight so new sensors don't stretch
+            // Dynamic formatting based on if viewing multiple days or just one
+            const timeFormat = (filterMode === 'today' || filterMode === 'yesterday') ? { hour: 'ha' } : { hour: 'ha', day: 'MMM d' };
+
+            // Removing min/max completely lets it auto-fit the data perfectly!
             const timeScaleOpts = { 
                 type: 'time', 
-                min: todayStart, 
-                max: todayEnd,
-                time: { unit: 'hour', displayFormats: { hour: 'ha' } }, 
+                time: { unit: 'hour', displayFormats: timeFormat }, 
                 grid: { color: '#1e293b' },
                 ticks: { maxTicksLimit: 6 }
             };
 
-            // Magic code that draws the RED DASHED LINE if there's a > 4 minute power cut gap
+            const zoomPluginOpts = {
+                zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+                pan: { enabled: true, mode: 'x' }
+            };
+
             const gapSegmenter = {
                 borderColor: ctx => (ctx.p1 && ctx.p0 && (ctx.p1.parsed.x - ctx.p0.parsed.x > 300000)) ? 'rgba(239, 68, 68, 1)' : undefined,
                 borderDash: ctx => (ctx.p1 && ctx.p0 && (ctx.p1.parsed.x - ctx.p0.parsed.x > 300000)) ? [4, 4] : undefined
             };
 
-            const commonLineOpts = { pointRadius: 0, pointHitRadius: 15, pointHoverRadius: 5, borderWidth: 2, tension: 0.3, segment: gapSegmenter };
+            const commonLineOpts = { pointRadius: 0, pointHitRadius: 20, pointHoverRadius: 6, borderWidth: 2, tension: 0.3, segment: gapSegmenter };
 
             // 1. AHT10
             createOrUpdateChart('chart-aht10', 'line', {
                 datasets: [
-                    { label: 'Temp °C', data: todayData.map(d => ({x: d.time, y: d.ahtTemp})), borderColor: '#60a5fa', yAxisID: 'y', ...commonLineOpts },
-                    { label: 'Hum %', data: todayData.map(d => ({x: d.time, y: d.ahtHum})), borderColor: '#22d3ee', yAxisID: 'y1', ...commonLineOpts }
+                    { label: 'Temp °C', data: viewData.map(d => ({x: d.time, y: d.ahtTemp})), borderColor: '#60a5fa', yAxisID: 'y', ...commonLineOpts },
+                    { label: 'Hum %', data: viewData.map(d => ({x: d.time, y: d.ahtHum})), borderColor: '#22d3ee', yAxisID: 'y1', ...commonLineOpts }
                 ]
-            }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } }, plugins: { legend: { position: 'top', labels: { boxWidth: 10, usePointStyle: true } } } });
+            }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } }, plugins: { zoom: zoomPluginOpts, legend: { position: 'top', labels: { boxWidth: 10, usePointStyle: true } } } });
 
             // 2. DHT11
             createOrUpdateChart('chart-dht11', 'line', {
                 datasets: [
-                    { label: 'Out Temp °C', data: todayData.map(d => ({x: d.time, y: d.dhtTemp})), borderColor: '#34d399', backgroundColor: 'rgba(52, 211, 153, 0.1)', fill: true, yAxisID: 'y', ...commonLineOpts },
-                    { label: 'Out Hum %', data: todayData.map(d => ({x: d.time, y: d.dhtHum})), borderColor: '#0ea5e9', yAxisID: 'y1', ...commonLineOpts }
+                    { label: 'Out Temp °C', data: viewData.map(d => ({x: d.time, y: d.dhtTemp})), borderColor: '#34d399', backgroundColor: 'rgba(52, 211, 153, 0.1)', fill: true, yAxisID: 'y', ...commonLineOpts },
+                    { label: 'Out Hum %', data: viewData.map(d => ({x: d.time, y: d.dhtHum})), borderColor: '#0ea5e9', yAxisID: 'y1', ...commonLineOpts }
                 ]
-            }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } } });
+            }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } }, plugins: { zoom: zoomPluginOpts } });
 
             // 3. DS18B20 Core
             createOrUpdateChart('chart-ds18b20', 'line', {
-                datasets: [{ label: 'Core Temp °C', data: todayData.map(d => ({x: d.time, y: d.dsTemp})), borderColor: '#fb7185', backgroundColor: 'rgba(251, 113, 133, 0.1)', fill: true, borderWidth: 2, pointRadius: 0, pointHitRadius: 15, segment: gapSegmenter }]
-            }, { scales: { x: timeScaleOpts, y: { grid: { color: '#1e293b' } } }, plugins: { legend: {display: false} } });
+                datasets: [{ label: 'Core Temp °C', data: viewData.map(d => ({x: d.time, y: d.dsTemp})), borderColor: '#fb7185', backgroundColor: 'rgba(251, 113, 133, 0.1)', fill: true, borderWidth: 2, pointRadius: 0, pointHitRadius: 20, segment: gapSegmenter }]
+            }, { scales: { x: timeScaleOpts, y: { grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
 
             // 4. BMP280
             createOrUpdateChart('chart-bmp280', 'line', {
                 datasets: [
-                    { label: 'hPa', data: todayData.map(d => ({x: d.time, y: d.pressure})), borderColor: '#c084fc', yAxisID: 'y', ...commonLineOpts },
-                    { label: 'Alt (m)', data: todayData.map(d => ({x: d.time, y: d.altitude})), borderColor: '#f472b6', yAxisID: 'y1', ...commonLineOpts }
+                    { label: 'hPa', data: viewData.map(d => ({x: d.time, y: d.pressure})), borderColor: '#c084fc', yAxisID: 'y', ...commonLineOpts },
+                    { label: 'Alt (m)', data: viewData.map(d => ({x: d.time, y: d.altitude})), borderColor: '#f472b6', yAxisID: 'y1', ...commonLineOpts }
                 ]
-            }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } } });
+            }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } }, plugins: { zoom: zoomPluginOpts } });
 
             // 5. Radar Scatter
-            const activeRadar = todayData.filter(d => d.radar > 0 && d.radar !== null);
+            const activeRadar = viewData.filter(d => d.radar > 0 && d.radar !== null);
             createOrUpdateChart('chart-radar', 'scatter', {
                 datasets: [{ label: 'Dist (cm)', data: activeRadar.map(d => ({x: d.time, y: d.radar})), backgroundColor: '#fbbf24', pointRadius: 3 }]
-            }, { scales: { x: timeScaleOpts, y: { reverse: true, min: 0, title: {display: true, text: 'Closer'}, grid: { color: '#1e293b' } } }, plugins: { legend: {display: false} } });
+            }, { scales: { x: timeScaleOpts, y: { reverse: true, min: 0, title: {display: true, text: 'Closer'}, grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
 
             // 6. Sound
             createOrUpdateChart('chart-sound', 'line', {
-                datasets: [{ label: 'dBFS', data: todayData.map(d => ({x: d.time, y: d.sound})), borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.15)', fill: true, stepped: 'middle', borderWidth: 1, pointRadius: 0 }]
-            }, { scales: { x: timeScaleOpts, y: { min: -90, max: 0, grid: { color: '#1e293b' } } }, plugins: { legend: {display: false} } });
+                datasets: [{ label: 'dBFS', data: viewData.map(d => ({x: d.time, y: d.sound})), borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.15)', fill: true, stepped: 'middle', borderWidth: 1, pointRadius: 0 }]
+            }, { scales: { x: timeScaleOpts, y: { min: -90, max: 0, grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
 
             // 7. Lux
             createOrUpdateChart('chart-lux', 'line', {
-                datasets: [{ label: 'Lux', data: todayData.map(d => ({x: d.time, y: d.lux})), borderColor: '#fde047', backgroundColor: 'rgba(253, 224, 71, 0.1)', fill: true, ...commonLineOpts }]
-            }, { scales: { x: timeScaleOpts, y: { grid: { color: '#1e293b' } } }, plugins: { legend: {display: false} } });
+                datasets: [{ label: 'Lux', data: viewData.map(d => ({x: d.time, y: d.lux})), borderColor: '#fde047', backgroundColor: 'rgba(253, 224, 71, 0.1)', fill: true, ...commonLineOpts }]
+            }, { scales: { x: timeScaleOpts, y: { grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
         }
 
         function createOrUpdateChart(canvasId, type, data, options) {
             const ctx = document.getElementById(canvasId).getContext('2d');
             if (charts[canvasId]) { charts[canvasId].destroy(); }
             charts[canvasId] = new Chart(ctx, { type: type, data: data, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, ...options } });
+        }
+        
+        function resetAllZooms() {
+            Object.values(charts).forEach(chart => { if(chart.resetZoom) chart.resetZoom(); });
         }
 
         function toggleView(sensor) {
@@ -416,7 +459,7 @@
 
         // Start
         fetchSensorData();
-        setInterval(fetchSensorData, 120000);
+        setInterval(() => fetchSensorData(false), 120000);
 
     </script>
 </body>
