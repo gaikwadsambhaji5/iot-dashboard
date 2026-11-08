@@ -2,292 +2,419 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <!-- Optimized for iPhone 15 Plus and mobile devices -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>IoT Sensor Command Center</title>
+    <title>Sambhaji's Smart Home</title>
     
-    <!-- Tailwind CSS for Professional Styling -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js & Date Adapters for Advanced Graphs -->
+    <!-- Chart.js & Date Adapters -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
     
     <style>
-        body { background-color: #0f172a; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        .glass-card { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 1.5rem; }
+        body { background-color: #0b1120; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .glass-card { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 1.5rem; }
         .hide-scroll::-webkit-scrollbar { display: none; }
         .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
+        .btn-toggle { background: #1e293b; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid #334155; transition: all 0.2s; }
+        .btn-toggle:active { background: #334155; }
     </style>
 </head>
-<body class="antialiased pb-20">
+<body class="antialiased pb-24">
 
     <!-- Sticky Header -->
-    <header class="sticky top-0 z-50 glass-card mx-4 mt-4 px-6 py-4 flex justify-between items-center shadow-lg">
+    <header class="sticky top-0 z-50 glass-card mx-4 mt-4 px-5 py-4 shadow-2xl flex justify-between items-center">
         <div>
-            <h1 class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-teal-300">FEBTECH IoT Node</h1>
-            <p class="text-xs text-slate-400" id="lastUpdated">Syncing data...</p>
+            <h1 class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">Sambhaji's Smart Home</h1>
+            <p class="text-xs text-slate-400 mt-1"><span id="liveDate">--</span> • <span id="liveClock" class="font-mono">--:--:--</span></p>
         </div>
-        <div class="h-3 w-3 rounded-full bg-emerald-400 animate-pulse"></div>
+        <div class="flex flex-col items-end gap-2">
+            <button onclick="fetchSensorData(true)" class="bg-indigo-500 hover:bg-indigo-400 text-white text-xs px-3 py-1.5 rounded-full shadow-lg font-semibold flex items-center gap-1 active:scale-95 transition">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Refresh
+            </button>
+            <div class="flex items-center gap-1.5">
+                <div id="statusDot" class="h-2 w-2 rounded-full bg-slate-500"></div>
+                <span id="lastUpdated" class="text-[10px] text-slate-400 uppercase tracking-wide">Waiting...</span>
+            </div>
+        </div>
     </header>
 
-    <!-- Main Content Container -->
     <main class="px-4 mt-6 space-y-6">
 
-        <!-- 1. Room AHT10 (Temp & Hum) -->
-        <section class="glass-card p-5 shadow-xl">
+        <!-- Offline / Power Cut Alerts -->
+        <section id="alertsSection" class="hidden">
+            <div class="glass-card p-4 border border-rose-500/30 bg-rose-500/5">
+                <h2 class="text-sm font-bold text-rose-400 mb-2 flex items-center gap-2">⚠️ Power/Network Gaps Detected</h2>
+                <ul id="alertsList" class="space-y-1 text-xs text-rose-200/80 font-mono"></ul>
+            </div>
+        </section>
+
+        <!-- 1. AHT10 Indoor Climate -->
+        <section class="glass-card p-5">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-blue-300">🛋️ Indoor Climate (AHT10)</h2>
-                <button onclick="toggleView('aht10')" class="text-xs bg-slate-700 px-3 py-1 rounded-full hover:bg-slate-600 transition">Table / Graph</button>
+                <h2 class="text-lg font-semibold text-blue-300 flex items-center gap-2">🛋️ Indoor (AHT10)</h2>
+                <button onclick="toggleView('aht10')" class="btn-toggle">Table / Graph</button>
             </div>
-            <div class="grid grid-cols-2 gap-4 mb-4 text-center">
-                <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                    <p class="text-xs text-slate-400 uppercase tracking-wide">High / Low Temp</p>
-                    <p class="text-lg font-bold text-rose-400" id="ahtTempHL">-- / -- °C</p>
+            <!-- Analytics Bar -->
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Temp (Avg/Hi/Lo)</p>
+                    <p class="text-base font-bold text-blue-100"><span id="ahtTAvg">--</span>° <span class="text-xs text-slate-400 font-normal ml-1"><span class="text-rose-400" id="ahtTHi">--</span> / <span class="text-blue-400" id="ahtTLo">--</span></span></p>
+                    <p class="text-[10px] mt-1" id="ahtTTrend">--</p>
                 </div>
-                <div class="bg-slate-800/50 p-3 rounded-xl border border-slate-700">
-                    <p class="text-xs text-slate-400 uppercase tracking-wide">Avg Humidity</p>
-                    <p class="text-lg font-bold text-cyan-400" id="ahtHumAvg">-- %</p>
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Humidity (Avg)</p>
+                    <p class="text-base font-bold text-cyan-100"><span id="ahtHAvg">--</span>% <span class="text-xs text-slate-400 font-normal ml-1"><span class="text-rose-400" id="ahtHHi">--</span> / <span class="text-blue-400" id="ahtHLo">--</span></span></p>
+                    <p class="text-[10px] mt-1" id="ahtHTrend">--</p>
                 </div>
             </div>
-            <div id="aht10-graph" class="h-64 relative w-full"><canvas id="chart-aht10"></canvas></div>
-            <div id="aht10-table" class="hidden max-h-64 overflow-y-auto hide-scroll text-sm">
-                <table class="w-full text-left border-collapse">
-                    <thead class="sticky top-0 bg-slate-800"><tr><th class="p-2">Time</th><th class="p-2">Temp °C</th><th class="p-2">Hum %</th></tr></thead>
-                    <tbody id="aht10-tbody" class="divide-y divide-slate-700/50"></tbody>
-                </table>
+            <!-- Graph / Table -->
+            <div id="aht10-graph" class="h-56 relative w-full"><canvas id="chart-aht10"></canvas></div>
+            <div id="aht10-table" class="hidden max-h-56 overflow-y-auto hide-scroll text-xs">
+                <table class="w-full text-left border-collapse"><thead class="sticky top-0 bg-slate-800"><tr><th class="p-2">Time</th><th class="p-2">Temp °C</th><th class="p-2">Hum %</th></tr></thead><tbody id="aht10-tbody" class="divide-y divide-slate-700/50"></tbody></table>
             </div>
         </section>
 
-        <!-- 2. Outdoor DHT11 -->
-        <section class="glass-card p-5 shadow-xl">
-            <h2 class="text-lg font-semibold text-emerald-300 mb-4">🌤️ Outdoor Weather (DHT11)</h2>
-            <div id="dht11-graph" class="h-64 relative w-full"><canvas id="chart-dht11"></canvas></div>
-        </section>
-
-        <!-- 3. Internal Device DS18B20 -->
-        <section class="glass-card p-5 shadow-xl">
+        <!-- 2. DHT11 Outdoor Weather -->
+        <section class="glass-card p-5">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-rose-300">🔥 Core Temperature (DS18B20)</h2>
-                <span id="coreStatus" class="text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">Stable</span>
+                <h2 class="text-lg font-semibold text-emerald-300 flex items-center gap-2">🌤️ Outdoor (DHT11)</h2>
+                <button onclick="toggleView('dht11')" class="btn-toggle">Table / Graph</button>
             </div>
-            <div class="h-48 relative w-full"><canvas id="chart-ds18b20"></canvas></div>
+            <!-- Analytics Bar -->
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Temp (Avg/Hi/Lo)</p>
+                    <p class="text-base font-bold text-emerald-100"><span id="dhtTAvg">--</span>° <span class="text-xs text-slate-400 font-normal ml-1"><span class="text-rose-400" id="dhtTHi">--</span> / <span class="text-blue-400" id="dhtTLo">--</span></span></p>
+                </div>
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Humidity (Avg)</p>
+                    <p class="text-base font-bold text-teal-100"><span id="dhtHAvg">--</span>% <span class="text-xs text-slate-400 font-normal ml-1"><span class="text-rose-400" id="dhtHHi">--</span> / <span class="text-blue-400" id="dhtHLo">--</span></span></p>
+                </div>
+            </div>
+            <div id="dht11-graph" class="h-56 relative w-full"><canvas id="chart-dht11"></canvas></div>
+            <div id="dht11-table" class="hidden max-h-56 overflow-y-auto hide-scroll text-xs">
+                <table class="w-full text-left border-collapse"><thead class="sticky top-0 bg-slate-800"><tr><th class="p-2">Time</th><th class="p-2">Temp °C</th><th class="p-2">Hum %</th></tr></thead><tbody id="dht11-tbody" class="divide-y divide-slate-700/50"></tbody></table>
+            </div>
         </section>
 
-        <!-- 4. BMP280 (Pressure & Altitude) -->
-        <section class="glass-card p-5 shadow-xl">
-            <h2 class="text-lg font-semibold text-purple-300 mb-2">🏔️ Atmospheric (BMP280)</h2>
-            <p class="text-xs text-slate-400 mb-4">Dual-axis correlation of barometric drops vs calculated altitude shifts.</p>
-            <div class="h-64 relative w-full"><canvas id="chart-bmp280"></canvas></div>
+        <!-- 3. DS18B20 Core Temp -->
+        <section class="glass-card p-5">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-rose-300 flex items-center gap-2">🔥 Device Core (DS18B20)</h2>
+                <button onclick="toggleView('ds')" class="btn-toggle">Table / Graph</button>
+            </div>
+            <div class="flex items-center gap-4 mb-4 bg-slate-800/60 p-3 rounded-xl border border-slate-700/50">
+                <div>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Max Core Temp</p>
+                    <p class="text-base font-bold text-rose-100" id="dsMax">-- °C</p>
+                </div>
+                <div class="w-px h-8 bg-slate-700"></div>
+                <div>
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Status</p>
+                    <span id="coreStatus" class="text-xs px-2 py-0.5 rounded bg-slate-700">--</span>
+                </div>
+            </div>
+            <div id="ds-graph" class="h-48 relative w-full"><canvas id="chart-ds18b20"></canvas></div>
+            <div id="ds-table" class="hidden max-h-48 overflow-y-auto hide-scroll text-xs">
+                <table class="w-full text-left border-collapse"><thead class="sticky top-0 bg-slate-800"><tr><th class="p-2">Time</th><th class="p-2">Core °C</th></tr></thead><tbody id="ds-tbody" class="divide-y divide-slate-700/50"></tbody></table>
+            </div>
         </section>
 
-        <!-- 5. Radar LD2420 (Scatter Plot Heatmap) -->
-        <section class="glass-card p-5 shadow-xl">
-            <h2 class="text-lg font-semibold text-amber-300 mb-2">📡 Radar Presence (LD2420)</h2>
-            <p class="text-xs text-slate-400 mb-4">Clustered dots indicate prolonged movement. Lower dots = closer proximity.</p>
-            <div class="h-56 relative w-full"><canvas id="chart-radar"></canvas></div>
+        <!-- 4. BMP280 Altitude / Pressure -->
+        <section class="glass-card p-5">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-purple-300 flex items-center gap-2">🏔️ Barometric (BMP280)</h2>
+                <button onclick="toggleView('bmp')" class="btn-toggle">Table / Graph</button>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Avg Pressure</p>
+                    <p class="text-base font-bold text-purple-100" id="bmpPAvg">-- hPa</p>
+                </div>
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Avg Altitude</p>
+                    <p class="text-base font-bold text-fuchsia-100" id="bmpAAvg">-- m</p>
+                </div>
+            </div>
+            <div id="bmp-graph" class="h-56 relative w-full"><canvas id="chart-bmp280"></canvas></div>
+            <div id="bmp-table" class="hidden max-h-56 overflow-y-auto hide-scroll text-xs">
+                <table class="w-full text-left border-collapse"><thead class="sticky top-0 bg-slate-800"><tr><th class="p-2">Time</th><th class="p-2">Press(hPa)</th><th class="p-2">Alt(m)</th></tr></thead><tbody id="bmp-tbody" class="divide-y divide-slate-700/50"></tbody></table>
+            </div>
+        </section>
+
+        <!-- 5. LD2420 Radar -->
+        <section class="glass-card p-5">
+            <h2 class="text-lg font-semibold text-amber-300 mb-2">📡 Radar Presence</h2>
+            <p class="text-[10px] text-slate-400 mb-3">Scatter plot of movement events. Points closer to 0 indicate physical proximity.</p>
+            <div class="h-48 relative w-full"><canvas id="chart-radar"></canvas></div>
         </section>
 
         <!-- 6. Sound INMP441 -->
-        <section class="glass-card p-5 shadow-xl">
-            <h2 class="text-lg font-semibold text-fuchsia-300 mb-2">🎙️ Acoustic Spikes (INMP441)</h2>
-            <div class="h-48 relative w-full"><canvas id="chart-sound"></canvas></div>
+        <section class="glass-card p-5">
+            <h2 class="text-lg font-semibold text-pink-300 mb-2">🎙️ Acoustic Monitor</h2>
+            <div class="h-40 relative w-full"><canvas id="chart-sound"></canvas></div>
         </section>
         
         <!-- 7. Light BH1750 -->
-        <section class="glass-card p-5 shadow-xl">
-            <h2 class="text-lg font-semibold text-yellow-300 mb-2">☀️ Ambient Light (BH1750)</h2>
-            <div class="h-48 relative w-full"><canvas id="chart-lux"></canvas></div>
+        <section class="glass-card p-5">
+            <h2 class="text-lg font-semibold text-yellow-300 mb-2">☀️ Ambient Lux</h2>
+            <div class="h-40 relative w-full"><canvas id="chart-lux"></canvas></div>
         </section>
 
     </main>
 
     <script>
         // ==========================================
-        // 1. CONFIGURATION
+        // 1. CONFIGURATION (PASTE YOUR APP SCRIPT URL HERE)
         // ==========================================
-        // REPLACE THIS URL with your Google Apps Script Web App URL!
         const API_URL = "https://script.google.com/macros/s/AKfycbw2Bjus_9AuJaEjxbZ7_9xT8JfJZBzQ9-nbphPTS3LJVAHrpzZM0CasVINFt8JxKxI/exec";
         
-        // Global variables to store chart instances for updates
         const charts = {};
 
+        // Live Clock Logic
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('liveClock').innerText = now.toLocaleTimeString('en-US', {hour12: true});
+            document.getElementById('liveDate').innerText = now.toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'});
+        }, 1000);
+
         // ==========================================
-        // 2. DATA FETCHING & PARSING
+        // 2. DATA FETCH & PARSING
         // ==========================================
-        async function fetchSensorData() {
+        async function fetchSensorData(manual = false) {
+            const status = document.getElementById('lastUpdated');
+            const dot = document.getElementById('statusDot');
+            
+            status.innerText = "SYNCING...";
+            dot.className = "h-2 w-2 rounded-full bg-blue-400 animate-pulse";
+
             try {
                 const response = await fetch(API_URL);
                 const rawSheetData = await response.json();
-                const parsedData = parseGoogleSheetFormat(rawSheetData);
                 
-                document.getElementById('lastUpdated').innerText = "Live • Last check: " + new Date().toLocaleTimeString();
+                const {dataPoints, gaps} = parseGoogleSheetFormat(rawSheetData);
+                updateDashboards(dataPoints, gaps);
                 
-                updateDashboards(parsedData);
+                status.innerText = manual ? "MANUAL REFRESH OK" : "AUTO REFRESH OK";
+                dot.className = "h-2 w-2 rounded-full bg-emerald-500";
+                setTimeout(() => { status.innerText = new Date().toLocaleTimeString(); }, 3000);
             } catch (error) {
-                document.getElementById('lastUpdated').innerText = "Offline • Connection failed";
-                console.error("Error fetching data:", error);
+                status.innerText = "OFFLINE";
+                dot.className = "h-2 w-2 rounded-full bg-rose-500";
             }
         }
 
-        // Unpacks the crazy horizontal format `[08112026225911] LUX57.5, TEM...`
         function parseGoogleSheetFormat(rows) {
             const dataPoints = [];
+            const gaps = [];
             
             rows.forEach(row => {
-                // Column 0 is the date string. Actual data starts at Column 1.
                 for (let i = 1; i < row.length; i++) {
                     const cell = row[i];
-                    if (!cell || typeof cell !== 'string' || !cell.startsWith('[')) continue;
+                    if (!cell || typeof cell !== 'string') continue;
                     
-                    // Regex Extractors
-                    const timeMatch = cell.match(/\[(\d{14})\]/);
-                    if (!timeMatch) continue;
+                    // Gap Parsing for Red Lines
+                    if (cell.startsWith('|')) {
+                        const gapMatch = cell.match(/\| (\d{12})-(\d{12}) \|/);
+                        if (gapMatch) {
+                            const parseDate = (ts) => new Date(ts.slice(4,8), parseInt(ts.slice(2,4))-1, ts.slice(0,2), ts.slice(8,10), ts.slice(10,12));
+                            gaps.push({ start: parseDate(gapMatch[1]), end: parseDate(gapMatch[2]) });
+                        }
+                        continue;
+                    }
                     
-                    const ts = timeMatch[1]; // DDMMYYYYHHMMSS
-                    // Convert to Javascript Date
-                    const dateObj = new Date(ts.slice(4,8), parseInt(ts.slice(2,4))-1, ts.slice(0,2), ts.slice(8,10), ts.slice(10,12), ts.slice(12,14));
-                    
-                    // Safe regex extraction helper
-                    const extract = (regex) => { const m = cell.match(regex); return m ? parseFloat(m[1]) : null; };
+                    if (cell.startsWith('[')) {
+                        const timeMatch = cell.match(/\[(\d{14})\]/);
+                        if (!timeMatch) continue;
+                        
+                        const ts = timeMatch[1];
+                        const dateObj = new Date(ts.slice(4,8), parseInt(ts.slice(2,4))-1, ts.slice(0,2), ts.slice(8,10), ts.slice(10,12), ts.slice(12,14));
+                        
+                        const extract = (regex) => { const m = cell.match(regex); return m ? parseFloat(m[1]) : null; };
 
-                    dataPoints.push({
-                        time: dateObj,
-                        lux: extract(/LUX([\d.]+)/),
-                        ahtTemp: extract(/TEM([-\d.]+)/),
-                        ahtHum: extract(/HUM([\d.]+)/),
-                        pressure: extract(/PRS([\d.]+)/),
-                        altitude: extract(/ALT([-\d.]+)/),
-                        radar: extract(/RDR(\d+)/),
-                        sound: extract(/SND([-\d.]+)/),
-                        dhtTemp: extract(/ODT([-\d.]+)/),
-                        dhtHum: extract(/ODT[-\d.]+HUM([\d.]+)/), // Specific match to avoid catching AHT HUM
-                        dsTemp: extract(/DT([-\d.]+)/)
-                    });
+                        dataPoints.push({
+                            time: dateObj,
+                            lux: extract(/LUX([\d.]+)/),
+                            ahtTemp: extract(/TEM([-\d.]+)/),
+                            ahtHum: extract(/HUM([\d.]+)/),
+                            pressure: extract(/PRS([\d.]+)/),
+                            altitude: extract(/ALT([-\d.]+)/),
+                            radar: extract(/RDR(\d+)/),
+                            sound: extract(/SND([-\d.]+)/),
+                            dhtTemp: extract(/ODT([-\d.]+)/),
+                            dhtHum: extract(/ODT[-\d.]+HUM([\d.]+)/),
+                            dsTemp: extract(/DT([-\d.]+)/)
+                        });
+                    }
                 }
             });
-            
-            // Sort chronologically just in case
-            return dataPoints.sort((a, b) => a.time - b.time);
+            return { dataPoints: dataPoints.sort((a, b) => a.time - b.time), gaps };
         }
 
         // ==========================================
-        // 3. CHART RENDERING & UI UPDATES
+        // 3. UI GENERATION & MATH
         // ==========================================
-        function updateDashboards(data) {
-            // Filter for only TODAY'S data to keep mobile charts clean
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            const todaysData = data.filter(d => d.time >= today);
+        function calcStats(array) {
+            const valid = array.filter(v => v !== null && !isNaN(v));
+            if(valid.length === 0) return {max:'--', min:'--', avg:'--'};
+            return {
+                max: Math.max(...valid).toFixed(1),
+                min: Math.min(...valid).toFixed(1),
+                avg: (valid.reduce((a,b)=>a+b,0)/valid.length).toFixed(1)
+            };
+        }
 
-            // High/Low/Avg Calculations
-            if(todaysData.length > 0) {
-                const ahtTemps = todaysData.map(d => d.ahtTemp).filter(v => v !== null);
-                const ahtHums = todaysData.map(d => d.ahtHum).filter(v => v !== null);
-                const maxT = Math.max(...ahtTemps).toFixed(1);
-                const minT = Math.min(...ahtTemps).toFixed(1);
-                const avgH = (ahtHums.reduce((a,b)=>a+b,0)/ahtHums.length).toFixed(0);
-                
-                document.getElementById('ahtTempHL').innerText = `${maxT} / ${minT} °C`;
-                document.getElementById('ahtHumAvg').innerText = `${avgH} %`;
+        function calcTrend(dataPoints, key) {
+            if(dataPoints.length < 5) return {text: '--', color: 'text-slate-400'};
+            const latest = dataPoints[dataPoints.length-1][key];
+            // Get a point roughly 1 hour ago (30 readings ago at 2min intervals)
+            const oldIndex = Math.max(0, dataPoints.length - 30);
+            const old = dataPoints[oldIndex][key];
+            if(latest === null || old === null) return {text: '--', color: 'text-slate-400'};
+            
+            const diff = (latest - old).toFixed(1);
+            if(diff > 0.5) return {text: `▲ +${diff} (1hr)`, color: 'text-rose-400'};
+            if(diff < -0.5) return {text: `▼ ${diff} (1hr)`, color: 'text-blue-400'};
+            return {text: `▶ Flat (1hr)`, color: 'text-slate-400'};
+        }
 
-                // Core status logic
-                const latestDS = todaysData[todaysData.length-1].dsTemp;
-                const coreBadge = document.getElementById('coreStatus');
-                if (latestDS > 45) {
-                    coreBadge.innerText = "WARNING: HOT"; coreBadge.className = "text-xs px-2 py-1 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30";
-                } else {
-                    coreBadge.innerText = "Stable"; coreBadge.className = "text-xs px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
-                }
-                
-                // Populate Tabular View for AHT10
-                const tbody = document.getElementById('aht10-tbody');
-                tbody.innerHTML = '';
-                [...todaysData].reverse().forEach(d => {
-                    if(d.ahtTemp !== null) {
-                        tbody.innerHTML += `<tr><td class="p-2 text-slate-400">${d.time.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</td><td class="p-2">${d.ahtTemp}</td><td class="p-2">${d.ahtHum}</td></tr>`;
-                    }
+        function updateDashboards(dataPoints, gaps) {
+            // Filter to today
+            const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+            const todayEnd = new Date(); todayEnd.setHours(23,59,59,999);
+            const todayData = dataPoints.filter(d => d.time >= todayStart);
+            const todayGaps = gaps.filter(g => g.end >= todayStart);
+
+            // Populate Gaps Alert UI
+            const alertsSection = document.getElementById('alertsSection');
+            const alertsList = document.getElementById('alertsList');
+            alertsList.innerHTML = '';
+            if (todayGaps.length > 0) {
+                alertsSection.classList.remove('hidden');
+                todayGaps.forEach(gap => {
+                    alertsList.innerHTML += `<li>• Offline: ${gap.start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ➔ ${gap.end.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</li>`;
                 });
+            } else {
+                alertsSection.classList.add('hidden');
             }
 
-            // Global Chart Options tailored for mobile
+            // Stats Calculations
+            if(todayData.length > 0) {
+                const ahtT = calcStats(todayData.map(d=>d.ahtTemp)); document.getElementById('ahtTAvg').innerText = ahtT.avg; document.getElementById('ahtTHi').innerText = ahtT.max; document.getElementById('ahtTLo').innerText = ahtT.min;
+                const ahtH = calcStats(todayData.map(d=>d.ahtHum)); document.getElementById('ahtHAvg').innerText = Math.round(ahtH.avg); document.getElementById('ahtHHi').innerText = Math.round(ahtH.max); document.getElementById('ahtHLo').innerText = Math.round(ahtH.min);
+                
+                const tt = calcTrend(todayData, 'ahtTemp'); document.getElementById('ahtTTrend').innerText = tt.text; document.getElementById('ahtTTrend').className = `text-[10px] mt-1 font-semibold ${tt.color}`;
+                const ht = calcTrend(todayData, 'ahtHum'); document.getElementById('ahtHTrend').innerText = ht.text; document.getElementById('ahtHTrend').className = `text-[10px] mt-1 font-semibold ${ht.color}`;
+
+                const dhtT = calcStats(todayData.map(d=>d.dhtTemp)); document.getElementById('dhtTAvg').innerText = dhtT.avg; document.getElementById('dhtTHi').innerText = dhtT.max; document.getElementById('dhtTLo').innerText = dhtT.min;
+                const dhtH = calcStats(todayData.map(d=>d.dhtHum)); document.getElementById('dhtHAvg').innerText = Math.round(dhtH.avg); document.getElementById('dhtHHi').innerText = Math.round(dhtH.max); document.getElementById('dhtHLo').innerText = Math.round(dhtH.min);
+
+                const ds = calcStats(todayData.map(d=>d.dsTemp)); document.getElementById('dsMax').innerText = ds.max + ' °C';
+                const coreBadge = document.getElementById('coreStatus');
+                if (parseFloat(ds.max) > 50) { coreBadge.innerText = "WARNING: HOT"; coreBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500 text-white animate-pulse"; } 
+                else { coreBadge.innerText = "SAFE"; coreBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/50"; }
+
+                const bmp = calcStats(todayData.map(d=>d.pressure)); document.getElementById('bmpPAvg').innerText = bmp.avg;
+                const alt = calcStats(todayData.map(d=>d.altitude)); document.getElementById('bmpAAvg').innerText = alt.avg;
+
+                // Tables
+                const buildTable = (tbodyId, colsFn) => {
+                    let html = '';
+                    [...todayData].reverse().forEach(d => { html += `<tr><td class="p-2 text-slate-400">${d.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>${colsFn(d)}</tr>`; });
+                    document.getElementById(tbodyId).innerHTML = html;
+                };
+                buildTable('aht10-tbody', d => `<td class="p-2">${d.ahtTemp||'-'}</td><td class="p-2">${d.ahtHum||'-'}</td>`);
+                buildTable('dht11-tbody', d => `<td class="p-2">${d.dhtTemp||'-'}</td><td class="p-2">${d.dhtHum||'-'}</td>`);
+                buildTable('ds-tbody', d => `<td class="p-2 font-mono text-rose-300">${d.dsTemp||'-'}</td>`);
+                buildTable('bmp-tbody', d => `<td class="p-2">${d.pressure||'-'}</td><td class="p-2">${d.altitude||'-'}</td>`);
+            }
+
+            // ==========================================
+            // 4. CHART.JS CONFIGURATION
+            // ==========================================
             Chart.defaults.color = '#94a3b8';
             Chart.defaults.font.family = 'inherit';
-            const timeScaleOpts = { type: 'time', time: { unit: 'hour', tooltipFormat: 'PP pp' }, grid: { color: '#334155' } };
+            
+            // Forces the X axis to span exactly Midnight to Midnight so new sensors don't stretch
+            const timeScaleOpts = { 
+                type: 'time', 
+                min: todayStart, 
+                max: todayEnd,
+                time: { unit: 'hour', displayFormats: { hour: 'ha' } }, 
+                grid: { color: '#1e293b' },
+                ticks: { maxTicksLimit: 6 }
+            };
 
-            // 1. AHT10 Dual Line Chart
+            // Magic code that draws the RED DASHED LINE if there's a > 4 minute power cut gap
+            const gapSegmenter = {
+                borderColor: ctx => (ctx.p1 && ctx.p0 && (ctx.p1.parsed.x - ctx.p0.parsed.x > 300000)) ? 'rgba(239, 68, 68, 1)' : undefined,
+                borderDash: ctx => (ctx.p1 && ctx.p0 && (ctx.p1.parsed.x - ctx.p0.parsed.x > 300000)) ? [4, 4] : undefined
+            };
+
+            const commonLineOpts = { pointRadius: 0, pointHitRadius: 15, pointHoverRadius: 5, borderWidth: 2, tension: 0.3, segment: gapSegmenter };
+
+            // 1. AHT10
             createOrUpdateChart('chart-aht10', 'line', {
                 datasets: [
-                    { label: 'Temp °C', data: todaysData.map(d => ({x: d.time, y: d.ahtTemp})), borderColor: '#60a5fa', backgroundColor: 'rgba(96, 165, 250, 0.1)', fill: true, tension: 0.4, yAxisID: 'y' },
-                    { label: 'Humidity %', data: todaysData.map(d => ({x: d.time, y: d.ahtHum})), borderColor: '#22d3ee', borderDash: [5, 5], tension: 0.4, yAxisID: 'y1' }
+                    { label: 'Temp °C', data: todayData.map(d => ({x: d.time, y: d.ahtTemp})), borderColor: '#60a5fa', yAxisID: 'y', ...commonLineOpts },
+                    { label: 'Hum %', data: todayData.map(d => ({x: d.time, y: d.ahtHum})), borderColor: '#22d3ee', yAxisID: 'y1', ...commonLineOpts }
                 ]
-            }, {
-                scales: { x: timeScaleOpts, y: { type: 'linear', position: 'left' }, y1: { type: 'linear', position: 'right', grid: {drawOnChartArea: false} } },
-                plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } }
-            });
+            }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } }, plugins: { legend: { position: 'top', labels: { boxWidth: 10, usePointStyle: true } } } });
 
-            // 2. DHT11 Area Chart
+            // 2. DHT11
             createOrUpdateChart('chart-dht11', 'line', {
                 datasets: [
-                    { label: 'Outdoor °C', data: todaysData.map(d => ({x: d.time, y: d.dhtTemp})), borderColor: '#34d399', backgroundColor: 'rgba(52, 211, 153, 0.2)', fill: true, tension: 0.4 },
-                    { label: 'Hum %', data: todaysData.map(d => ({x: d.time, y: d.dhtHum})), borderColor: '#a7f3d0', borderWidth: 1, tension: 0.4 }
-                ]
-            }, { scales: { x: timeScaleOpts, y: { grid: { color: '#334155' } } } });
-
-            // 3. DS18B20 Core Line
-            createOrUpdateChart('chart-ds18b20', 'line', {
-                datasets: [{ label: 'Core °C', data: todaysData.map(d => ({x: d.time, y: d.dsTemp})), borderColor: '#fb7185', borderWidth: 3, pointRadius: 0, tension: 0.2 }]
-            }, { scales: { x: timeScaleOpts, y: { grid: { color: '#334155' } } } });
-
-            // 4. BMP280 Dual Axis
-            createOrUpdateChart('chart-bmp280', 'line', {
-                datasets: [
-                    { label: 'hPa', data: todaysData.map(d => ({x: d.time, y: d.pressure})), borderColor: '#c084fc', tension: 0.3, yAxisID: 'y' },
-                    { label: 'Alt (m)', data: todaysData.map(d => ({x: d.time, y: d.altitude})), borderColor: '#e879f9', borderDash: [2,2], tension: 0.3, yAxisID: 'y1' }
+                    { label: 'Out Temp °C', data: todayData.map(d => ({x: d.time, y: d.dhtTemp})), borderColor: '#34d399', backgroundColor: 'rgba(52, 211, 153, 0.1)', fill: true, yAxisID: 'y', ...commonLineOpts },
+                    { label: 'Out Hum %', data: todayData.map(d => ({x: d.time, y: d.dhtHum})), borderColor: '#0ea5e9', yAxisID: 'y1', ...commonLineOpts }
                 ]
             }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } } });
 
-            // 5. LD2420 Radar Scatter Heatmap (Advanced Visualization)
-            // Removes 0 values (no presence) to only plot actual movement bursts
-            const activeRadar = todaysData.filter(d => d.radar > 0 && d.radar !== null);
-            createOrUpdateChart('chart-radar', 'scatter', {
-                datasets: [{ label: 'Distance (cm)', data: activeRadar.map(d => ({x: d.time, y: d.radar})), backgroundColor: '#fbbf24', borderColor: '#f59e0b', pointRadius: 3 }]
-            }, { 
-                scales: { x: timeScaleOpts, y: { reverse: true, title: {display: true, text: 'Closer (cm)'}, grid: { color: '#334155' } } },
-                plugins: { legend: {display: false} }
-            });
+            // 3. DS18B20 Core
+            createOrUpdateChart('chart-ds18b20', 'line', {
+                datasets: [{ label: 'Core Temp °C', data: todayData.map(d => ({x: d.time, y: d.dsTemp})), borderColor: '#fb7185', backgroundColor: 'rgba(251, 113, 133, 0.1)', fill: true, borderWidth: 2, pointRadius: 0, pointHitRadius: 15, segment: gapSegmenter }]
+            }, { scales: { x: timeScaleOpts, y: { grid: { color: '#1e293b' } } }, plugins: { legend: {display: false} } });
 
-            // 6. Sound Spike Area
+            // 4. BMP280
+            createOrUpdateChart('chart-bmp280', 'line', {
+                datasets: [
+                    { label: 'hPa', data: todayData.map(d => ({x: d.time, y: d.pressure})), borderColor: '#c084fc', yAxisID: 'y', ...commonLineOpts },
+                    { label: 'Alt (m)', data: todayData.map(d => ({x: d.time, y: d.altitude})), borderColor: '#f472b6', yAxisID: 'y1', ...commonLineOpts }
+                ]
+            }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } } });
+
+            // 5. Radar Scatter
+            const activeRadar = todayData.filter(d => d.radar > 0 && d.radar !== null);
+            createOrUpdateChart('chart-radar', 'scatter', {
+                datasets: [{ label: 'Dist (cm)', data: activeRadar.map(d => ({x: d.time, y: d.radar})), backgroundColor: '#fbbf24', pointRadius: 3 }]
+            }, { scales: { x: timeScaleOpts, y: { reverse: true, min: 0, title: {display: true, text: 'Closer'}, grid: { color: '#1e293b' } } }, plugins: { legend: {display: false} } });
+
+            // 6. Sound
             createOrUpdateChart('chart-sound', 'line', {
-                datasets: [{ label: 'dBFS', data: todaysData.map(d => ({x: d.time, y: d.sound})), borderColor: '#e879f9', backgroundColor: 'rgba(232, 121, 249, 0.2)', fill: true, stepped: 'middle' }]
-            }, { scales: { x: timeScaleOpts, y: { min: -90, max: 0, grid: { color: '#334155' } } } });
+                datasets: [{ label: 'dBFS', data: todayData.map(d => ({x: d.time, y: d.sound})), borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.15)', fill: true, stepped: 'middle', borderWidth: 1, pointRadius: 0 }]
+            }, { scales: { x: timeScaleOpts, y: { min: -90, max: 0, grid: { color: '#1e293b' } } }, plugins: { legend: {display: false} } });
 
             // 7. Lux
             createOrUpdateChart('chart-lux', 'line', {
-                datasets: [{ label: 'Lux', data: todaysData.map(d => ({x: d.time, y: d.lux})), borderColor: '#fde047', backgroundColor: 'rgba(253, 224, 71, 0.1)', fill: true, tension: 0.4 }]
-            }, { scales: { x: timeScaleOpts, y: { grid: { color: '#334155' } } } });
+                datasets: [{ label: 'Lux', data: todayData.map(d => ({x: d.time, y: d.lux})), borderColor: '#fde047', backgroundColor: 'rgba(253, 224, 71, 0.1)', fill: true, ...commonLineOpts }]
+            }, { scales: { x: timeScaleOpts, y: { grid: { color: '#1e293b' } } }, plugins: { legend: {display: false} } });
         }
 
-        // Helper to destroy old charts and draw new ones cleanly
         function createOrUpdateChart(canvasId, type, data, options) {
             const ctx = document.getElementById(canvasId).getContext('2d');
             if (charts[canvasId]) { charts[canvasId].destroy(); }
-            charts[canvasId] = new Chart(ctx, { type: type, data: data, options: { responsive: true, maintainAspectRatio: false, ...options } });
+            charts[canvasId] = new Chart(ctx, { type: type, data: data, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, ...options } });
         }
 
-        // UI Toggle for Table vs Graph
         function toggleView(sensor) {
             const graph = document.getElementById(`${sensor}-graph`);
             const table = document.getElementById(`${sensor}-table`);
-            if (graph.classList.contains('hidden')) {
-                graph.classList.remove('hidden'); table.classList.add('hidden');
-            } else {
-                graph.classList.add('hidden'); table.classList.remove('hidden');
-            }
+            if (graph.classList.contains('hidden')) { graph.classList.remove('hidden'); table.classList.add('hidden'); } 
+            else { graph.classList.add('hidden'); table.classList.remove('hidden'); }
         }
 
-        // Fetch on load, and auto-refresh every 2 minutes
+        // Start
         fetchSensorData();
         setInterval(fetchSensorData, 120000);
 
