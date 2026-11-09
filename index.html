@@ -1,535 +1,903 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sambhaji's Smart Home</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Chart.js & Date Adapters -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/date-fns"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
-    
-    <!-- Touch Gestures & Pinch-to-Zoom Plugins -->
-    <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.0.1/dist/chartjs-plugin-zoom.min.js"></script>
-    
-    <style>
-        body { background-color: #0b1120; color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        .glass-card { background: rgba(30, 41, 59, 0.6); backdrop-filter: blur(16px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 1.5rem; }
-        .hide-scroll::-webkit-scrollbar { display: none; }
-        .hide-scroll { -ms-overflow-style: none; scrollbar-width: none; }
-        .btn-toggle { background: #1e293b; padding: 4px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; border: 1px solid #334155; transition: all 0.2s; }
-        .btn-toggle:active { background: #334155; }
-        .filter-btn { padding: 6px 14px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; background: rgba(30, 41, 59, 0.8); border: 1px solid #334155; color: #94a3b8; transition: all 0.2s; white-space: nowrap; }
-        .filter-btn.active { background: #4f46e5; color: #fff; border-color: #6366f1; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#080e19" />
+  <meta name="description" content="Sambhaji's Smart Home — environmental telemetry and device monitoring console." />
+  <title>Smart Home // Mission Control</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hammerjs@2.0.8/hammer.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-zoom@2.2.0/dist/chartjs-plugin-zoom.min.js"></script>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #080e19;
+      --bg-2: #0b1422;
+      --panel: #101c2c;
+      --panel-2: #132237;
+      --panel-3: #17283e;
+      --line: rgba(150, 180, 210, .13);
+      --line-strong: rgba(150, 180, 210, .23);
+      --text: #e8f0fa;
+      --muted: #8da2bb;
+      --dim: #5f748c;
+      --cyan: #5bd7ef;
+      --blue: #75aaff;
+      --green: #66e0ad;
+      --amber: #f5bd68;
+      --red: #ff7280;
+      --violet: #b5a0ff;
+      --radius: 18px;
+      --shadow: 0 18px 50px rgba(0,0,0,.22);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; background: var(--bg); }
+    body { margin: 0; min-height: 100vh; color: var(--text); background: radial-gradient(ellipse at 12% -10%, rgba(30,95,145,.22), transparent 34%), radial-gradient(ellipse at 100% 0%, rgba(48,54,120,.15), transparent 30%), var(--bg); font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+    button, input, select { font: inherit; }
+    button { cursor: pointer; }
+    .mono { font-family: "DM Mono", ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+    .shell { max-width: 1680px; margin: 0 auto; padding: 22px 26px 60px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:18px; padding: 15px 18px; border:1px solid var(--line); background:rgba(12,23,38,.82); backdrop-filter: blur(18px); border-radius:20px; box-shadow:var(--shadow); position:sticky; top:12px; z-index:30; }
+    .brand { display:flex; align-items:center; gap:13px; min-width:0; }
+    .brand-mark { width:42px; height:42px; display:grid; place-items:center; flex:none; border-radius:13px; color:#07111e; font-weight:900; letter-spacing:-2px; background:linear-gradient(145deg,#8deaff,#5ba8e9 58%,#8d83ff); box-shadow:0 0 26px rgba(91,215,239,.18); }
+    .brand-name { font-weight:800; letter-spacing:.08em; font-size:13px; text-transform:uppercase; white-space:nowrap; }
+    .brand-sub { margin-top:4px; color:var(--muted); font-size:10px; letter-spacing:.16em; text-transform:uppercase; }
+    .top-right { display:flex; align-items:center; gap:12px; }
+    .clock-block { text-align:right; min-width:128px; }
+    .clock { font:500 14px "DM Mono",monospace; letter-spacing:.03em; }
+    .date-line { color:var(--muted); font-size:10px; margin-top:4px; }
+    .status-pill { display:flex; align-items:center; gap:8px; padding:8px 11px; border:1px solid var(--line); border-radius:100px; background:rgba(255,255,255,.025); color:var(--muted); font-size:10px; letter-spacing:.1em; text-transform:uppercase; white-space:nowrap; }
+    .dot { width:7px; height:7px; border-radius:50%; background:var(--dim); box-shadow:0 0 0 4px rgba(95,116,140,.1); }
+    .dot.live { background:var(--green); box-shadow:0 0 0 4px rgba(102,224,173,.12),0 0 12px rgba(102,224,173,.55); }
+    .dot.warn { background:var(--amber); box-shadow:0 0 0 4px rgba(245,189,104,.12); }
+    .dot.offline { background:var(--red); box-shadow:0 0 0 4px rgba(255,114,128,.12); }
+    .layout { display:grid; grid-template-columns:220px minmax(0,1fr); gap:22px; margin-top:22px; align-items:start; }
+    .side { position:sticky; top:100px; border:1px solid var(--line); border-radius:20px; padding:14px; background:rgba(14,26,43,.74); }
+    .side-label { color:var(--dim); font-size:9px; font-weight:700; letter-spacing:.18em; text-transform:uppercase; padding:10px 10px 8px; }
+    .nav-btn { width:100%; display:flex; align-items:center; gap:11px; padding:11px 12px; border:0; border-radius:11px; color:var(--muted); background:transparent; text-align:left; font-size:12px; font-weight:600; transition:.18s ease; }
+    .nav-btn:hover,.nav-btn.active { color:var(--text); background:linear-gradient(90deg,rgba(91,215,239,.15),rgba(91,215,239,.035)); }
+    .nav-btn.active { box-shadow:inset 2px 0 0 var(--cyan); }
+    .nav-icon { width:18px; text-align:center; font-size:15px; }
+    .side-foot { border-top:1px solid var(--line); margin-top:18px; padding:14px 10px 5px; color:var(--dim); font-size:10px; line-height:1.6; }
+    .content { min-width:0; }
+    .page-head { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin:7px 0 20px; }
+    .eyebrow { color:var(--cyan); font:500 10px "DM Mono",monospace; letter-spacing:.2em; text-transform:uppercase; }
+    h1 { margin:7px 0 6px; font-size:clamp(25px,3vw,37px); line-height:1.08; letter-spacing:-.045em; }
+    .subtitle { color:var(--muted); font-size:12px; line-height:1.6; }
+    .actions { display:flex; flex-wrap:wrap; gap:8px; justify-content:flex-end; }
+    .btn { display:inline-flex; align-items:center; justify-content:center; gap:8px; border:1px solid var(--line-strong); border-radius:11px; padding:10px 13px; color:var(--text); background:rgba(255,255,255,.035); font-size:11px; font-weight:700; transition:.18s ease; }
+    .btn:hover { background:rgba(255,255,255,.075); border-color:rgba(91,215,239,.4); transform:translateY(-1px); }
+    .btn.primary { color:#06121c; border-color:transparent; background:linear-gradient(120deg,#75e5f5,#75aaff); }
+    .btn.primary:hover { filter:brightness(1.08); }
+    .btn.danger { border-color:rgba(255,114,128,.3); color:#ff9ba4; }
+    .btn.small { padding:7px 9px; font-size:10px; border-radius:9px; }
+    .filters { display:flex; flex-wrap:wrap; align-items:center; gap:7px; padding:12px; border:1px solid var(--line); border-radius:15px; background:rgba(13,25,41,.7); margin-bottom:17px; }
+    .filter-label { color:var(--dim); font-size:9px; font-weight:800; letter-spacing:.14em; margin:0 5px 0 3px; text-transform:uppercase; }
+    .filter-btn { border:1px solid var(--line); border-radius:9px; padding:7px 11px; background:transparent; color:var(--muted); font-size:10px; font-weight:700; }
+    .filter-btn.active { border-color:rgba(91,215,239,.5); color:var(--cyan); background:rgba(91,215,239,.1); }
+    .date-input { color:var(--text); background:#0c1928; border:1px solid var(--line-strong); border-radius:8px; padding:7px 9px; font:10px "DM Mono",monospace; }
+    .range-spacer { flex:1; }
+    .grid { display:grid; gap:13px; }
+    .telemetry-strip { grid-template-columns:repeat(4,minmax(0,1fr)); margin-bottom:17px; }
+    .metric { border:1px solid var(--line); border-radius:15px; padding:14px 15px; background:linear-gradient(145deg,rgba(19,36,57,.9),rgba(13,25,41,.9)); min-width:0; position:relative; overflow:hidden; }
+    .metric:after { content:""; position:absolute; width:90px; height:90px; border-radius:50%; right:-43px; top:-48px; background:var(--glow,rgba(91,215,239,.08)); filter:blur(1px); }
+    .metric-top { display:flex; align-items:center; justify-content:space-between; gap:8px; color:var(--muted); font-size:9px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; }
+    .metric-value { margin-top:12px; font:500 clamp(20px,2.1vw,27px) "DM Mono",monospace; letter-spacing:-.06em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .metric-note { margin-top:5px; color:var(--dim); font-size:10px; }
+    .metric-accent { color:var(--cyan); }
+    .section { margin-top:21px; scroll-margin-top:100px; }
+    .section-head { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; margin-bottom:12px; }
+    .section-title { font-size:14px; font-weight:800; letter-spacing:-.02em; }
+    .section-desc { color:var(--dim); font-size:10px; margin-top:4px; }
+    .section-kicker { color:var(--cyan); font:500 9px "DM Mono",monospace; letter-spacing:.16em; text-transform:uppercase; }
+    .sensor-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .sensor-card { min-width:0; border:1px solid var(--line); background:linear-gradient(150deg,rgba(18,34,54,.96),rgba(12,24,40,.96)); border-radius:16px; padding:15px; text-align:left; color:var(--text); position:relative; overflow:hidden; transition:.18s ease; }
+    .sensor-card:hover { border-color:rgba(91,215,239,.38); transform:translateY(-2px); box-shadow:0 12px 30px rgba(0,0,0,.18); }
+    .sensor-card.selected { border-color:rgba(91,215,239,.62); box-shadow:inset 0 0 0 1px rgba(91,215,239,.14),0 0 25px rgba(91,215,239,.07); }
+    .sensor-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .sensor-name { color:#c6d5e8; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+    .sensor-icon { font-size:15px; opacity:.85; }
+    .sensor-value { margin-top:15px; font:500 clamp(21px,2.2vw,29px) "DM Mono",monospace; letter-spacing:-.07em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .sensor-unit { font:500 11px Inter,sans-serif; color:var(--muted); letter-spacing:0; }
+    .sensor-meta { display:flex; align-items:center; justify-content:space-between; gap:5px; margin-top:8px; color:var(--dim); font-size:9px; }
+    .sensor-range { margin-top:6px; color:var(--dim); font:9px "DM Mono",monospace; letter-spacing:.01em; }
+    .health-tag { display:inline-flex; align-items:center; gap:5px; color:var(--green); font-size:9px; font-weight:700; }
+    .health-tag.warn { color:var(--amber); }
+    .health-tag.bad { color:var(--red); }
+    .tiny-dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+    .spark { display:block; width:100%; height:28px; margin-top:10px; opacity:.85; }
+    .panel { min-width:0; border:1px solid var(--line); border-radius:18px; background:linear-gradient(145deg,rgba(17,32,51,.94),rgba(11,23,38,.96)); box-shadow:0 10px 35px rgba(0,0,0,.12); }
+    .panel-pad { padding:17px; }
+    .explorer-top { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+    .select { color:var(--text); background:#0b1929; border:1px solid var(--line-strong); padding:9px 12px; border-radius:10px; font-size:11px; min-width:175px; }
+    .chart-wrap { height:310px; margin-top:14px; position:relative; }
+    .chart-help { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; color:var(--dim); font-size:9px; margin-top:8px; }
+    .two-col { grid-template-columns:minmax(0,1.35fr) minmax(280px,.85fr); }
+    .alert-list,.event-list { display:flex; flex-direction:column; gap:8px; }
+    .alert-item,.event-item { display:flex; align-items:flex-start; gap:10px; border:1px solid var(--line); border-radius:11px; padding:10px; background:rgba(255,255,255,.018); }
+    .alert-mark { width:23px; height:23px; flex:none; display:grid; place-items:center; border-radius:8px; background:rgba(245,189,104,.12); color:var(--amber); font-size:12px; }
+    .alert-item.critical .alert-mark { background:rgba(255,114,128,.12); color:var(--red); }
+    .alert-title { font-size:10px; font-weight:800; }
+    .alert-detail { color:var(--muted); font-size:9px; line-height:1.5; margin-top:3px; }
+    .empty { color:var(--dim); font-size:11px; text-align:center; padding:24px 12px; border:1px dashed var(--line-strong); border-radius:11px; }
+    .health-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
+    .health-card { border:1px solid var(--line); background:rgba(255,255,255,.018); border-radius:12px; padding:12px; }
+    .health-card-top { display:flex; align-items:center; justify-content:space-between; gap:8px; }
+    .health-card-name { font-size:10px; font-weight:800; }
+    .health-state { color:var(--green); font-size:9px; font-weight:800; text-transform:uppercase; }
+    .health-state.warn { color:var(--amber); }
+    .health-state.bad { color:var(--red); }
+    .health-value { margin-top:11px; font:500 16px "DM Mono",monospace; }
+    .health-sub { color:var(--dim); margin-top:4px; font-size:9px; line-height:1.45; }
+    .table-wrap { overflow:auto; max-height:480px; border:1px solid var(--line); border-radius:12px; }
+    table { width:100%; border-collapse:collapse; min-width:820px; font-size:10px; }
+    th { position:sticky; top:0; z-index:2; background:#17283e; color:#a9bed5; text-align:left; font-size:9px; letter-spacing:.08em; text-transform:uppercase; padding:11px 10px; }
+    td { padding:10px; border-top:1px solid var(--line); color:#d6e2ef; white-space:nowrap; }
+    tbody tr:hover { background:rgba(91,215,239,.035); }
+    .muted { color:var(--muted); }
+    .rain-bar { height:6px; width:78px; border-radius:10px; background:#20354c; overflow:hidden; display:inline-block; vertical-align:middle; margin-right:7px; }
+    .rain-bar span { display:block; height:100%; background:linear-gradient(90deg,#4ebde8,#6c8df5); }
+    .footer { display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; border-top:1px solid var(--line); padding:18px 2px 0; margin-top:28px; color:var(--dim); font-size:9px; line-height:1.6; }
+    .mobile-dock { display:none; }
+    .modal-backdrop { display:none; position:fixed; inset:0; z-index:80; padding:18px; background:rgba(2,7,13,.76); backdrop-filter:blur(10px); align-items:center; justify-content:center; }
+    .modal-backdrop.open { display:flex; }
+    .modal { width:min(540px,100%); max-height:min(88vh,760px); overflow:auto; border:1px solid var(--line-strong); border-radius:20px; background:#0e1b2c; box-shadow:0 25px 90px rgba(0,0,0,.55); }
+    .modal-head { display:flex; align-items:center; justify-content:space-between; padding:18px 20px; border-bottom:1px solid var(--line); }
+    .modal-title { font-weight:800; font-size:15px; }
+    .modal-body { padding:18px 20px 20px; }
+    .setting-grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+    .field { display:flex; flex-direction:column; gap:7px; }
+    .field label { color:var(--muted); font-size:10px; font-weight:700; }
+    .field input,.field select { width:100%; background:#081422; color:var(--text); border:1px solid var(--line-strong); border-radius:9px; padding:10px; font:11px "DM Mono",monospace; }
+    .setting-note { color:var(--dim); font-size:9px; line-height:1.6; margin-top:13px; }
+    .modal-actions { display:flex; justify-content:flex-end; gap:8px; margin-top:18px; }
+    .toast { position:fixed; z-index:100; left:50%; bottom:24px; transform:translate(-50%,20px); opacity:0; pointer-events:none; border:1px solid var(--line-strong); border-radius:100px; background:#15263b; color:var(--text); padding:11px 16px; box-shadow:var(--shadow); font-size:11px; transition:.25s; max-width:calc(100% - 28px); text-align:center; }
+    .toast.show { opacity:1; transform:translate(-50%,0); }
+    .loader { display:inline-block; width:11px; height:11px; border:2px solid rgba(255,255,255,.25); border-top-color:var(--cyan); border-radius:50%; animation:spin .7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .hidden { display:none !important; }
+    @media(max-width:1180px) { .sensor-grid {grid-template-columns:repeat(2,minmax(0,1fr));} .telemetry-strip {grid-template-columns:repeat(2,minmax(0,1fr));} .health-grid {grid-template-columns:repeat(2,minmax(0,1fr));} }
+    @media(max-width:800px) {
+      .shell {padding:12px 12px calc(88px + env(safe-area-inset-bottom));}
+      .topbar {top:7px; padding:11px 12px; border-radius:16px;}
+      .brand-mark {width:36px;height:36px;border-radius:11px;}
+      .brand-name {font-size:10px; letter-spacing:.06em;}
+      .brand-sub {font-size:8px; letter-spacing:.1em;}
+      .status-pill {font-size:0; padding:9px; gap:0;}
+      .status-pill .dot {width:8px;height:8px;}
+      .clock-block {min-width:auto;}
+      .clock {font-size:11px;}
+      .date-line {font-size:8px;}
+      .layout {display:block; margin-top:17px;}
+      .side {display:none;}
+      .page-head {display:block; margin:6px 2px 16px;}
+      .page-head .actions {justify-content:flex-start; margin-top:13px;}
+      h1 {font-size:28px;}
+      .subtitle {font-size:11px;}
+      .filters {gap:6px; padding:9px; border-radius:13px;}
+      .filter-label {width:100%; margin-bottom:1px;}
+      .filter-btn {padding:7px 9px; font-size:9px;}
+      .range-spacer {display:none;}
+      .date-input {font-size:9px; flex:1; min-width:0;}
+      .telemetry-strip {gap:8px;}
+      .metric {padding:11px; border-radius:13px;}
+      .metric-top {font-size:8px;}
+      .metric-value {font-size:19px; margin-top:9px;}
+      .metric-note {font-size:9px;}
+      .sensor-grid {gap:8px;}
+      .sensor-card {padding:12px; border-radius:13px;}
+      .sensor-name {font-size:9px;}
+      .sensor-value {font-size:23px; margin-top:12px;}
+      .sensor-meta {font-size:8px;}
+      .sensor-range {font-size:8px;}
+      .spark {height:23px; margin-top:7px;}
+      .section {margin-top:18px; scroll-margin-top:82px;}
+      .section-title {font-size:13px;}
+      .panel-pad {padding:13px;}
+      .two-col {grid-template-columns:1fr;}
+      .chart-wrap {height:260px;}
+      .health-grid {gap:8px;}
+      .health-card {padding:10px;}
+      .mobile-dock {display:flex; position:fixed; z-index:50; left:10px; right:10px; bottom:calc(9px + env(safe-area-inset-bottom)); padding:7px; gap:3px; border:1px solid rgba(156,190,220,.2); border-radius:17px; background:rgba(10,21,35,.93); backdrop-filter:blur(20px); box-shadow:0 14px 45px rgba(0,0,0,.48);}
+      .dock-btn {flex:1; display:flex; flex-direction:column; gap:4px; align-items:center; justify-content:center; border:0; border-radius:11px; padding:7px 3px; background:transparent; color:var(--dim); font-size:8px; font-weight:700;}
+      .dock-btn span:first-child {font-size:15px;}
+      .dock-btn.active {color:var(--cyan); background:rgba(91,215,239,.09);}
+      .footer {font-size:8px;}
+    }
+    @media(max-width:390px) {
+      .brand-sub {display:none;}
+      .top-right {gap:8px;}
+      .sensor-value {font-size:20px;}
+      .metric-value {font-size:17px;}
+      .btn {padding:9px 10px; font-size:10px;}
+      .setting-grid {grid-template-columns:1fr;}
+    }
+    @media(prefers-reduced-motion:reduce) { *,*::before,*::after {scroll-behavior:auto !important; transition:none !important; animation:none !important;} }
+  </style>
 </head>
-<body class="antialiased pb-24">
-
-    <!-- Sticky Header -->
-    <header class="sticky top-0 z-50 glass-card mx-4 mt-4 px-5 py-4 shadow-2xl flex flex-col gap-3">
-        <div class="flex justify-between items-center">
-            <div>
-                <h1 class="text-xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-400">Sambhaji's Smart Home</h1>
-                <p class="text-xs text-slate-400 mt-1"><span id="liveDate">--</span> • <span id="liveClock" class="font-mono">--:--:--</span></p>
-            </div>
-            <div class="flex flex-col items-end gap-2">
-                <button onclick="fetchSensorData(true)" class="bg-indigo-500 hover:bg-indigo-400 text-white text-xs px-3 py-1.5 rounded-full shadow-lg font-semibold flex items-center gap-1 active:scale-95 transition">
-                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Refresh
-                </button>
-                <div class="flex items-center gap-1.5">
-                    <div id="statusDot" class="h-2 w-2 rounded-full bg-slate-500"></div>
-                    <span id="lastUpdated" class="text-[10px] text-slate-400 uppercase tracking-wide">Waiting...</span>
-                </div>
-            </div>
+<body>
+  <div class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">SH</div>
+        <div>
+          <div class="brand-name">Smart Home / Mission Control</div>
+          <div class="brand-sub">Environmental telemetry · Operations console</div>
         </div>
-        
-        <!-- Date Filters & Zoom Reset -->
-        <div class="flex items-center justify-between overflow-x-auto hide-scroll gap-2 pb-1">
-            <div class="flex gap-2">
-                <button onclick="setFilter('today')" id="flt-today" class="filter-btn active">Today</button>
-                <button onclick="setFilter('yesterday')" id="flt-yesterday" class="filter-btn">Yesterday</button>
-                <button onclick="setFilter('3days')" id="flt-3days" class="filter-btn">3 Days</button>
-                <button onclick="setFilter('7days')" id="flt-7days" class="filter-btn">7 Days</button>
-            </div>
-            <button onclick="resetAllZooms()" class="text-[10px] bg-slate-700 px-2 py-1 rounded text-slate-300 ml-2 whitespace-nowrap active:bg-slate-600">Reset Zoom</button>
+      </div>
+      <div class="top-right">
+        <div class="status-pill"><span id="connectionDot" class="dot"></span><span id="connectionLabel">Awaiting telemetry</span></div>
+        <div class="clock-block">
+          <div id="liveClock" class="clock">--:--:--</div>
+          <div id="liveDate" class="date-line">--</div>
         </div>
+      </div>
     </header>
 
-    <main class="px-4 mt-6 space-y-6">
+    <div class="layout">
+      <aside class="side">
+        <div class="side-label">Operations</div>
+        <button class="nav-btn active" data-target="overview"><span class="nav-icon">⌂</span> Overview</button>
+        <button class="nav-btn" data-target="sensors"><span class="nav-icon">◈</span> Sensor array</button>
+        <button class="nav-btn" data-target="analytics"><span class="nav-icon">⌁</span> Telemetry explorer</button>
+        <button class="nav-btn" data-target="diagnostics"><span class="nav-icon">⊙</span> Diagnostics</button>
+        <button class="nav-btn" data-target="events"><span class="nav-icon">≋</span> Events & logs</button>
+        <div class="side-label" style="margin-top:12px">System</div>
+        <button class="nav-btn" id="sideSettings"><span class="nav-icon">⚙</span> System settings</button>
+        <div class="side-foot">LOCAL TIME · AUTO SYNC<br><span class="mono">TELEMETRY LINK / GSHEET API</span></div>
+      </aside>
 
-        <!-- Offline / Power Cut Alerts -->
-        <section id="alertsSection" class="hidden">
-            <div class="glass-card p-4 border border-rose-500/30 bg-rose-500/5">
-                <h2 class="text-sm font-bold text-rose-400 mb-2 flex items-center gap-2">⚠️ Offline Gaps Detected</h2>
-                <ul id="alertsList" class="space-y-1 text-xs text-rose-200/80 font-mono"></ul>
-            </div>
+      <main class="content">
+        <section id="overview" class="page-head">
+          <div>
+            <div class="eyebrow">Home operations / 01 — overview</div>
+            <h1>Environmental command center</h1>
+            <div class="subtitle">A consolidated view of your home environment, device conditions and incoming sensor telemetry.</div>
+          </div>
+          <div class="actions">
+            <button class="btn" id="settingsBtn">⚙ Settings</button>
+            <button class="btn" id="notifyBtn">◉ Enable alerts</button>
+            <button class="btn" id="exportBtn">⇩ Export CSV</button>
+            <button class="btn primary" id="refreshBtn"><span id="refreshGlyph">↻</span> Refresh data</button>
+          </div>
         </section>
 
-        <!-- 1. AHT10 Indoor Climate -->
-        <section class="glass-card p-5">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-blue-300 flex items-center gap-2">🛋️ Indoor (AHT10)</h2>
-                <button onclick="toggleView('aht10')" class="btn-toggle">Table / Graph</button>
-            </div>
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Temp (Avg/Hi/Lo)</p>
-                    <p class="text-base font-bold text-blue-100"><span id="ahtTAvg">--</span>° <span class="text-xs text-slate-400 font-normal ml-1"><span class="text-rose-400" id="ahtTHi">--</span> / <span class="text-blue-400" id="ahtTLo">--</span></span></p>
-                    <p class="text-[10px] mt-1" id="ahtTTrend">--</p>
-                </div>
-                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Humidity (Avg)</p>
-                    <p class="text-base font-bold text-cyan-100"><span id="ahtHAvg">--</span>% <span class="text-xs text-slate-400 font-normal ml-1"><span class="text-rose-400" id="ahtHHi">--</span> / <span class="text-blue-400" id="ahtHLo">--</span></span></p>
-                    <p class="text-[10px] mt-1" id="ahtHTrend">--</p>
-                </div>
-            </div>
-            <div id="aht10-graph" class="h-56 relative w-full"><canvas id="chart-aht10"></canvas></div>
-            <div id="aht10-table" class="hidden max-h-56 overflow-y-auto hide-scroll text-xs">
-                <table class="w-full text-left border-collapse"><thead class="sticky top-0 bg-slate-800"><tr><th class="p-2">Time</th><th class="p-2">Temp °C</th><th class="p-2">Hum %</th></tr></thead><tbody id="aht10-tbody" class="divide-y divide-slate-700/50"></tbody></table>
-            </div>
+        <section class="filters" aria-label="Date range filters">
+          <span class="filter-label">Time window</span>
+          <button class="filter-btn active" data-range="today">Today</button>
+          <button class="filter-btn" data-range="yesterday">Yesterday</button>
+          <button class="filter-btn" data-range="3days">3 days</button>
+          <button class="filter-btn" data-range="7days">7 days</button>
+          <button class="filter-btn" data-range="30days">30 days</button>
+          <button class="filter-btn" data-range="90days">90 days</button>
+          <button class="filter-btn" data-range="all">All data</button>
+          <span class="range-spacer"></span>
+          <input class="date-input" type="date" id="fromDate" aria-label="Start date" />
+          <span class="muted" style="font-size:9px">to</span>
+          <input class="date-input" type="date" id="toDate" aria-label="End date" />
+          <button class="btn small" id="applyCustom">Apply</button>
         </section>
 
-        <!-- 2. DHT11 Outdoor Weather -->
-        <section class="glass-card p-5">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-emerald-300 flex items-center gap-2">🌤️ Outdoor (DHT11)</h2>
-                <button onclick="toggleView('dht11')" class="btn-toggle">Table / Graph</button>
-            </div>
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Temp (Avg/Hi/Lo)</p>
-                    <p class="text-base font-bold text-emerald-100"><span id="dhtTAvg">--</span>° <span class="text-xs text-slate-400 font-normal ml-1"><span class="text-rose-400" id="dhtTHi">--</span> / <span class="text-blue-400" id="dhtTLo">--</span></span></p>
-                </div>
-                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Humidity (Avg)</p>
-                    <p class="text-base font-bold text-teal-100"><span id="dhtHAvg">--</span>% <span class="text-xs text-slate-400 font-normal ml-1"><span class="text-rose-400" id="dhtHHi">--</span> / <span class="text-blue-400" id="dhtHLo">--</span></span></p>
-                </div>
-            </div>
-            <div id="dht11-graph" class="h-56 relative w-full"><canvas id="chart-dht11"></canvas></div>
-            <div id="dht11-table" class="hidden max-h-56 overflow-y-auto hide-scroll text-xs">
-                <table class="w-full text-left border-collapse"><thead class="sticky top-0 bg-slate-800"><tr><th class="p-2">Time</th><th class="p-2">Temp °C</th><th class="p-2">Hum %</th></tr></thead><tbody id="dht11-tbody" class="divide-y divide-slate-700/50"></tbody></table>
-            </div>
+        <section class="grid telemetry-strip" aria-label="System summary">
+          <div class="metric" style="--glow:rgba(102,224,173,.11)">
+            <div class="metric-top">Data link <span>◉</span></div>
+            <div class="metric-value" id="linkMetric">--</div>
+            <div class="metric-note" id="linkNote">Waiting for first packet</div>
+          </div>
+          <div class="metric" style="--glow:rgba(91,215,239,.11)">
+            <div class="metric-top">Telemetry points <span>⌁</span></div>
+            <div class="metric-value" id="pointsMetric">--</div>
+            <div class="metric-note" id="pointsNote">Selected time window</div>
+          </div>
+          <div class="metric" style="--glow:rgba(181,160,255,.11)">
+            <div class="metric-top">Estimated coverage <span>▦</span></div>
+            <div class="metric-value" id="coverageMetric">--</div>
+            <div class="metric-note" id="coverageNote">Based on configured sample interval</div>
+          </div>
+          <div class="metric" style="--glow:rgba(245,189,104,.11)">
+            <div class="metric-top">Data interruptions <span>⌁</span></div>
+            <div class="metric-value" id="gapsMetric">--</div>
+            <div class="metric-note" id="gapsNote">Detected in selected window</div>
+          </div>
         </section>
 
-        <!-- 3. NEW RAIN ANALYTICS -->
-        <section class="glass-card p-5">
-            <h2 class="text-lg font-semibold text-cyan-300 flex items-center gap-2 mb-4">🌧️ Rain Analytics</h2>
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Status & Density</p>
-                    <p class="text-base font-bold" id="rainStatusText">--</p>
-                    <p class="text-[10px] mt-1 text-slate-400">Density: <span id="rainDensityTxt" class="text-cyan-200 font-mono">0</span>%</p>
-                </div>
-                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Rain Event</p>
-                    <p class="text-[11px] text-slate-300">Start: <span id="rainStart" class="text-cyan-100 font-semibold">--:--</span></p>
-                    <p class="text-[11px] text-slate-300 mt-1">End: <span id="rainEnd" class="text-slate-400 font-semibold">--:--</span></p>
-                </div>
-            </div>
-            <div class="h-40 relative w-full"><canvas id="chart-rain"></canvas></div>
+        <section id="alertsSection" class="section hidden">
+          <div class="section-head">
+            <div><div class="section-kicker">Priority channel</div><div class="section-title">Active alerts</div><div class="section-desc">Conditions inferred from the telemetry currently available.</div></div>
+            <span class="health-tag bad" id="alertCount">0 active</span>
+          </div>
+          <div class="panel panel-pad"><div id="alertsList" class="alert-list"></div></div>
         </section>
 
-        <!-- 4. DS18B20 Core Temp -->
-        <section class="glass-card p-5">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-rose-300 flex items-center gap-2">🔥 Device Core (DS18B20)</h2>
-                <button onclick="toggleView('ds')" class="btn-toggle">Table / Graph</button>
-            </div>
-            <div class="flex items-center gap-4 mb-4 bg-slate-800/60 p-3 rounded-xl border border-slate-700/50">
-                <div>
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Max Core Temp</p>
-                    <p class="text-base font-bold text-rose-100" id="dsMax">-- °C</p>
-                </div>
-                <div class="w-px h-8 bg-slate-700"></div>
-                <div>
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Status</p>
-                    <span id="coreStatus" class="text-xs px-2 py-0.5 rounded bg-slate-700">--</span>
-                </div>
-            </div>
-            <div id="ds-graph" class="h-48 relative w-full"><canvas id="chart-ds18b20"></canvas></div>
-            <div id="ds-table" class="hidden max-h-48 overflow-y-auto hide-scroll text-xs">
-                <table class="w-full text-left border-collapse"><thead class="sticky top-0 bg-slate-800"><tr><th class="p-2">Time</th><th class="p-2">Core °C</th></tr></thead><tbody id="ds-tbody" class="divide-y divide-slate-700/50"></tbody></table>
-            </div>
+        <section id="sensors" class="section">
+          <div class="section-head">
+            <div><div class="section-kicker">01 / Sensor array</div><div class="section-title">Live instrument panel</div><div class="section-desc">Select any instrument to load its detailed history below.</div></div>
+            <span class="mono muted" id="sensorCount" style="font-size:10px">08 INSTRUMENTS</span>
+          </div>
+          <div class="grid sensor-grid" id="sensorGrid">
+            <button class="sensor-card" data-sensor="aht10"><div class="sensor-head"><span class="sensor-name">Indoor climate · AHT10</span><span class="sensor-icon">⌂</span></div><div class="sensor-value">-- <span class="sensor-unit">°C</span></div><div class="sensor-meta"><span>Temperature / humidity</span><span class="health-tag">WAIT</span></div><div class="sensor-range">MIN — · MAX —</div><canvas class="spark" data-spark="aht10"></canvas></button>
+            <button class="sensor-card" data-sensor="dht11"><div class="sensor-head"><span class="sensor-name">Outdoor · DHT11</span><span class="sensor-icon">☼</span></div><div class="sensor-value">-- <span class="sensor-unit">°C</span></div><div class="sensor-meta"><span>Temperature / humidity</span><span class="health-tag">WAIT</span></div><div class="sensor-range">MIN — · MAX —</div><canvas class="spark" data-spark="dht11"></canvas></button>
+            <button class="sensor-card" data-sensor="rain"><div class="sensor-head"><span class="sensor-name">Precipitation · Rain</span><span class="sensor-icon">⌁</span></div><div class="sensor-value">-- <span class="sensor-unit">%</span></div><div class="sensor-meta"><span>Density / event status</span><span class="health-tag">WAIT</span></div><div class="sensor-range">MIN — · MAX —</div><canvas class="spark" data-spark="rain"></canvas></button>
+            <button class="sensor-card" data-sensor="ds"><div class="sensor-head"><span class="sensor-name">Device core · DS18B20</span><span class="sensor-icon">◉</span></div><div class="sensor-value">-- <span class="sensor-unit">°C</span></div><div class="sensor-meta"><span>Device temperature</span><span class="health-tag">WAIT</span></div><div class="sensor-range">MIN — · MAX —</div><canvas class="spark" data-spark="ds"></canvas></button>
+            <button class="sensor-card" data-sensor="bmp"><div class="sensor-head"><span class="sensor-name">Barometric · BMP280</span><span class="sensor-icon">⌃</span></div><div class="sensor-value">-- <span class="sensor-unit">hPa</span></div><div class="sensor-meta"><span>Pressure / altitude</span><span class="health-tag">WAIT</span></div><div class="sensor-range">MIN — · MAX —</div><canvas class="spark" data-spark="bmp"></canvas></button>
+            <button class="sensor-card" data-sensor="radar"><div class="sensor-head"><span class="sensor-name">Presence · LD2420</span><span class="sensor-icon">◎</span></div><div class="sensor-value">-- <span class="sensor-unit">cm</span></div><div class="sensor-meta"><span>Nearest detected target</span><span class="health-tag">WAIT</span></div><div class="sensor-range">MIN — · MAX —</div><canvas class="spark" data-spark="radar"></canvas></button>
+            <button class="sensor-card" data-sensor="sound"><div class="sensor-head"><span class="sensor-name">Acoustic · INMP441</span><span class="sensor-icon">≋</span></div><div class="sensor-value">-- <span class="sensor-unit">dBFS</span></div><div class="sensor-meta"><span>Digital sound level</span><span class="health-tag">WAIT</span></div><div class="sensor-range">MIN — · MAX —</div><canvas class="spark" data-spark="sound"></canvas></button>
+            <button class="sensor-card" data-sensor="lux"><div class="sensor-head"><span class="sensor-name">Illuminance · BH1750</span><span class="sensor-icon">✧</span></div><div class="sensor-value">-- <span class="sensor-unit">lux</span></div><div class="sensor-meta"><span>Ambient light</span><span class="health-tag">WAIT</span></div><div class="sensor-range">MIN — · MAX —</div><canvas class="spark" data-spark="lux"></canvas></button>
+          </div>
         </section>
 
-        <!-- 5. BMP280 Altitude / Pressure -->
-        <section class="glass-card p-5">
-            <div class="flex justify-between items-center mb-4">
-                <h2 class="text-lg font-semibold text-purple-300 flex items-center gap-2">🏔️ Barometric (BMP280)</h2>
-                <button onclick="toggleView('bmp')" class="btn-toggle">Table / Graph</button>
+        <section id="analytics" class="section">
+          <div class="section-head">
+            <div><div class="section-kicker">02 / Analysis suite</div><div class="section-title">Telemetry explorer</div><div class="section-desc">Inspect the selected sensor over time. Scroll, zoom and pan on supported browsers.</div></div>
+          </div>
+          <div class="panel panel-pad">
+            <div class="explorer-top">
+              <div style="display:flex;align-items:center;gap:9px;flex-wrap:wrap">
+                <select class="select" id="chartSensor" aria-label="Choose sensor">
+                  <option value="aht10">Indoor climate · AHT10</option><option value="dht11">Outdoor climate · DHT11</option><option value="rain">Rain analytics</option><option value="ds">Device core · DS18B20</option><option value="bmp">Barometric · BMP280</option><option value="radar">Presence radar · LD2420</option><option value="sound">Acoustic · INMP441</option><option value="lux">Ambient light · BH1750</option>
+                </select>
+                <span class="health-tag" id="chartStatus"><span class="tiny-dot"></span> Awaiting data</span>
+              </div>
+              <div style="display:flex;gap:7px;flex-wrap:wrap">
+                <button class="btn small" id="resetZoomBtn">Reset zoom</button>
+                <button class="btn small" id="chartTableBtn">View data table</button>
+              </div>
             </div>
-            <div class="grid grid-cols-2 gap-3 mb-4">
-                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Avg Pressure</p>
-                    <p class="text-base font-bold text-purple-100" id="bmpPAvg">-- hPa</p>
-                </div>
-                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
-                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Avg Altitude</p>
-                    <p class="text-base font-bold text-fuchsia-100" id="bmpAAvg">-- m</p>
-                </div>
+            <div class="chart-wrap" id="chartWrap"><canvas id="mainChart"></canvas></div>
+            <div class="table-wrap hidden" id="chartTableWrap" style="margin-top:14px;max-height:300px"><table><thead id="chartTableHead"></thead><tbody id="chartTableBody"></tbody></table></div>
+            <div class="chart-help"><span>ⓘ Values are taken from recorded sensor packets; missing readings are shown as gaps.</span><span class="mono" id="chartPointCount">0 POINTS</span></div>
+          </div>
+        </section>
+
+        <section id="diagnostics" class="section">
+          <div class="section-head">
+            <div><div class="section-kicker">03 / System integrity</div><div class="section-title">Sensor health & diagnostics</div><div class="section-desc">Freshness and basic range checks. These are software diagnostics, not hardware self-tests.</div></div>
+            <span class="mono muted" id="healthSummary" style="font-size:10px">--</span>
+          </div>
+          <div class="grid health-grid" id="healthGrid"></div>
+          <div class="grid two-col" style="margin-top:13px">
+            <div class="panel panel-pad">
+              <div class="section-head"><div><div class="section-title">Data quality report</div><div class="section-desc">Completeness and sample timing in the selected range.</div></div></div>
+              <div class="grid" style="grid-template-columns:repeat(2,minmax(0,1fr));gap:9px">
+                <div class="metric"><div class="metric-top">Average packet interval</div><div class="metric-value" id="intervalMetric">--</div><div class="metric-note">Between consecutive packets</div></div>
+                <div class="metric"><div class="metric-top">Longest interruption</div><div class="metric-value" id="longestGapMetric">--</div><div class="metric-note">Detected packet gap</div></div>
+                <div class="metric"><div class="metric-top">Invalid values</div><div class="metric-value" id="invalidMetric">--</div><div class="metric-note">Outside broad sanity limits</div></div>
+                <div class="metric"><div class="metric-top">Missing sensor fields</div><div class="metric-value" id="missingMetric">--</div><div class="metric-note">Across selected sensor records</div></div>
+              </div>
             </div>
-            <div id="bmp-graph" class="h-56 relative w-full"><canvas id="chart-bmp280"></canvas></div>
-            <div id="bmp-table" class="hidden max-h-56 overflow-y-auto hide-scroll text-xs">
-                <table class="w-full text-left border-collapse"><thead class="sticky top-0 bg-slate-800"><tr><th class="p-2">Time</th><th class="p-2">Press(hPa)</th><th class="p-2">Alt(m)</th></tr></thead><tbody id="bmp-tbody" class="divide-y divide-slate-700/50"></tbody></table>
+            <div class="panel panel-pad">
+              <div class="section-head"><div><div class="section-title">System interpretation</div><div class="section-desc">What the dashboard can and cannot determine.</div></div></div>
+              <div class="alert-list" id="diagnosticNotes"></div>
             </div>
+          </div>
         </section>
 
-        <!-- 6. LD2420 Radar -->
-        <section class="glass-card p-5">
-            <h2 class="text-lg font-semibold text-amber-300 mb-2">📡 Radar Presence</h2>
-            <div class="h-48 relative w-full"><canvas id="chart-radar"></canvas></div>
+        <section id="events" class="section">
+          <div class="section-head">
+            <div><div class="section-kicker">04 / Event recorder</div><div class="section-title">Rain events & telemetry interruptions</div><div class="section-desc">Events are reconstructed from the records returned by Google Sheets.</div></div>
+            <button class="btn small" id="exportEventsBtn">⇩ Export events</button>
+          </div>
+          <div class="grid two-col">
+            <div class="panel panel-pad"><div class="section-head"><div><div class="section-title">Rain event history</div><div class="section-desc">Start, end and peak recorded density.</div></div><span class="mono muted" id="rainEventCount" style="font-size:9px">0 EVENTS</span></div><div id="rainEvents" class="event-list"><div class="empty">No rain records in this time window.</div></div></div>
+            <div class="panel panel-pad"><div class="section-head"><div><div class="section-title">Offline / data gaps</div><div class="section-desc">Explicit log markers and long packet intervals.</div></div><span class="mono muted" id="gapEventCount" style="font-size:9px">0 GAPS</span></div><div id="gapEvents" class="event-list"><div class="empty">No interruptions detected.</div></div></div>
+          </div>
+          <div class="panel panel-pad" style="margin-top:13px">
+            <div class="section-head"><div><div class="section-title">Recent telemetry log</div><div class="section-desc">Newest records first. The export contains all records in the selected range.</div></div><button class="btn small" id="exportLogBtn">Export selected log</button></div>
+            <div class="table-wrap"><table><thead><tr><th>Timestamp</th><th>Indoor °C</th><th>Indoor RH</th><th>Outdoor °C</th><th>Outdoor RH</th><th>Core °C</th><th>Pressure</th><th>Rain</th><th>Lux</th><th>Radar</th><th>Sound</th></tr></thead><tbody id="recentLogBody"><tr><td colspan="11" class="muted">Waiting for data…</td></tr></tbody></table></div>
+          </div>
         </section>
 
-        <!-- 7. Sound INMP441 -->
-        <section class="glass-card p-5">
-            <h2 class="text-lg font-semibold text-pink-300 mb-2">🎙️ Acoustic Monitor</h2>
-            <div class="h-40 relative w-full"><canvas id="chart-sound"></canvas></div>
-        </section>
-        
-        <!-- 8. Light BH1750 -->
-        <section class="glass-card p-5">
-            <h2 class="text-lg font-semibold text-yellow-300 mb-2">☀️ Ambient Lux</h2>
-            <div class="h-40 relative w-full"><canvas id="chart-lux"></canvas></div>
-        </section>
+        <footer class="footer">
+          <span>SMART HOME / MISSION CONTROL · CLIENT-SIDE TELEMETRY ANALYSIS</span>
+          <span id="footerStatus">API: not contacted · Local settings only</span>
+        </footer>
+      </main>
+    </div>
+  </div>
 
-    </main>
+  <nav class="mobile-dock" aria-label="Main navigation">
+    <button class="dock-btn active" data-target="overview"><span>⌂</span>Overview</button>
+    <button class="dock-btn" data-target="sensors"><span>◈</span>Sensors</button>
+    <button class="dock-btn" data-target="analytics"><span>⌁</span>Charts</button>
+    <button class="dock-btn" data-target="diagnostics"><span>⊙</span>Health</button>
+    <button class="dock-btn" data-target="events"><span>≋</span>Events</button>
+  </nav>
 
-    <script>
-        // ==========================================
-        // 1. CONFIGURATION
-        // ==========================================
-        const API_URL = "https://script.google.com/macros/s/AKfycbw2Bjus_9AuJaEjxbZ7_9xT8JfJZBzQ9-nbphPTS3LJVAHrpzZM0CasVINFt8JxKxI/exec"; 
-        
-        const charts = {};
-        let globalDataPoints = [];
-        let globalGaps = [];
-        let currentFilterMode = 'today';
+  <div class="modal-backdrop" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsTitle">
+    <div class="modal">
+      <div class="modal-head"><div><div class="section-kicker">Configuration / Local device</div><div class="modal-title" id="settingsTitle">System settings</div></div><button class="btn small" id="closeSettings">✕ Close</button></div>
+      <div class="modal-body">
+        <div class="setting-grid">
+          <div class="field"><label for="coreLimit">Core temperature warning (°C)</label><input id="coreLimit" type="number" min="20" max="120" step="1" /></div>
+          <div class="field"><label for="indoorTempMax">Indoor temperature warning (°C)</label><input id="indoorTempMax" type="number" min="10" max="60" step="1" /></div>
+          <div class="field"><label for="indoorHumMin">Indoor humidity low limit (%)</label><input id="indoorHumMin" type="number" min="0" max="100" step="1" /></div>
+          <div class="field"><label for="indoorHumMax">Indoor humidity high limit (%)</label><input id="indoorHumMax" type="number" min="0" max="100" step="1" /></div>
+          <div class="field"><label for="staleMinutes">Telemetry stale after (minutes)</label><input id="staleMinutes" type="number" min="2" max="240" step="1" /></div>
+          <div class="field"><label for="offlineMinutes">Offline after (minutes)</label><input id="offlineMinutes" type="number" min="3" max="1440" step="1" /></div>
+          <div class="field"><label for="sampleMinutes">Expected sample interval (minutes)</label><input id="sampleMinutes" type="number" min="1" max="60" step="1" /></div>
+          <div class="field"><label for="refreshSeconds">Dashboard refresh (seconds)</label><input id="refreshSeconds" type="number" min="30" max="1800" step="30" /></div>
+          <div class="field"><label for="gapMinutes">Count a gap after (minutes)</label><input id="gapMinutes" type="number" min="2" max="1440" step="1" /></div>
+        </div>
+        <p class="setting-note">Settings are saved in this browser only. Changing the expected sample interval affects the estimated data coverage and gap analysis; it does not change how often the ESP32 transmits. The dashboard cannot distinguish a power cut from Wi-Fi loss without additional hardware or backend status data.</p>
+        <div class="modal-actions"><button class="btn" id="resetSettings">Restore defaults</button><button class="btn primary" id="saveSettings">Save settings</button></div>
+      </div>
+    </div>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-        // Live Clock Logic
-        setInterval(() => {
-            const now = new Date();
-            document.getElementById('liveClock').innerText = now.toLocaleTimeString('en-US', {hour12: true});
-            document.getElementById('liveDate').innerText = now.toLocaleDateString('en-US', {weekday: 'short', month: 'short', day: 'numeric'});
-        }, 1000);
+  <script>
+    'use strict';
 
-        // ==========================================
-        // 2. DATA FETCH & FILTERING
-        // ==========================================
-        async function fetchSensorData(manual = false) {
-            const status = document.getElementById('lastUpdated');
-            const dot = document.getElementById('statusDot');
-            
-            status.innerText = "SYNCING...";
-            dot.className = "h-2 w-2 rounded-full bg-blue-400 animate-pulse";
+    // Keep this URL pointed at your existing Google Apps Script deployment.
+    const API_URL = 'https://script.google.com/macros/s/AKfycbw2Bjus_9AuJaEjxbZ7_9xT8JfJZBzQ9-nbphPTS3LJVAHrpzZM0CasVINFt8JxKxI/exec';
+    const SETTINGS_KEY = 'smartHomeMissionControl.settings.v2';
+    const DEFAULT_SETTINGS = { coreLimit: 50, indoorTempMax: 35, indoorHumMin: 25, indoorHumMax: 75, staleMinutes: 5, offlineMinutes: 15, sampleMinutes: 1, refreshSeconds: 120, gapMinutes: 5 };
 
-            try {
-                const response = await fetch(API_URL);
-                const rawSheetData = await response.json();
-                
-                const parsed = parseGoogleSheetFormat(rawSheetData);
-                globalDataPoints = parsed.dataPoints;
-                globalGaps = parsed.gaps;
-                
-                applyFilterAndUpdate();
-                
-                status.innerText = manual ? "MANUAL REFRESH OK" : "AUTO REFRESH OK";
-                dot.className = "h-2 w-2 rounded-full bg-emerald-500";
-                setTimeout(() => { status.innerText = new Date().toLocaleTimeString(); }, 3000);
-            } catch (error) {
-                status.innerText = "OFFLINE";
-                dot.className = "h-2 w-2 rounded-full bg-rose-500";
-            }
+    const SENSOR_DEFS = {
+      aht10: { name:'Indoor climate · AHT10', primary:'ahtTemp', unit:'°C', fields:['ahtTemp','ahtHum'], limits:{ahtTemp:[-20,85],ahtHum:[0,100]}, labels:['Temperature','Humidity'], color:'#65c7f0' },
+      dht11: { name:'Outdoor climate · DHT11', primary:'dhtTemp', unit:'°C', fields:['dhtTemp','dhtHum'], limits:{dhtTemp:[-20,80],dhtHum:[0,100]}, labels:['Temperature','Humidity'], color:'#70d9ae' },
+      rain: { name:'Precipitation · Rain', primary:'rainDensity', unit:'%', fields:['rainDensity'], limits:{rainDensity:[0,100]}, labels:['Density'], color:'#58c9ef' },
+      ds: { name:'Device core · DS18B20', primary:'dsTemp', unit:'°C', fields:['dsTemp'], limits:{dsTemp:[-55,125]}, labels:['Core temperature'], color:'#ff8794' },
+      bmp: { name:'Barometric · BMP280', primary:'pressure', unit:'hPa', fields:['pressure','altitude'], limits:{pressure:[250,1200],altitude:[-1000,10000]}, labels:['Pressure','Altitude'], color:'#b29aff' },
+      radar: { name:'Presence · LD2420', primary:'radar', unit:'cm', fields:['radar'], limits:{radar:[0,1200]}, labels:['Distance'], color:'#f4c16f' },
+      sound: { name:'Acoustic · INMP441', primary:'sound', unit:'dBFS', fields:['sound'], limits:{sound:[-120,0]}, labels:['Sound level'], color:'#ed82c1' },
+      lux: { name:'Illuminance · BH1750', primary:'lux', unit:'lux', fields:['lux'], limits:{lux:[0,200000]}, labels:['Illuminance'], color:'#f1df75' }
+    };
+    const FIELD_NAMES = { ahtTemp:'Indoor temp',ahtHum:'Indoor RH',dhtTemp:'Outdoor temp',dhtHum:'Outdoor RH',rainDensity:'Rain density',dsTemp:'Core temp',pressure:'Pressure',altitude:'Altitude',radar:'Radar distance',sound:'Sound level',lux:'Illuminance' };
+
+    let settings = loadSettings();
+    let allPoints = [];
+    let explicitGaps = [];
+    let filteredPoints = [];
+    let filteredGaps = [];
+    let currentRange = 'today';
+    let customRange = null;
+    let selectedSensor = 'aht10';
+    let chartInstance = null;
+    let refreshTimer = null;
+    let lastSuccessfulFetch = null;
+    let toastTimer = null;
+    let lastNotificationKeys = new Set();
+    let apiError = '';
+
+    const $ = (id) => document.getElementById(id);
+    const fmt = (value, decimals=1) => value === null || value === undefined || !Number.isFinite(Number(value)) ? '—' : Number(value).toFixed(decimals);
+    const safeText = (value) => String(value ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    const localDateKey = (date) => { const y=date.getFullYear(),m=String(date.getMonth()+1).padStart(2,'0'),d=String(date.getDate()).padStart(2,'0'); return `${y}-${m}-${d}`; };
+    const formatTime = (date, withDate=false) => date instanceof Date && !isNaN(date) ? date.toLocaleString([], withDate ? {day:'2-digit',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'} : {hour:'2-digit',minute:'2-digit'}) : '—';
+    const formatDuration = (minutes) => { if (!Number.isFinite(minutes) || minutes < 0) return '—'; if (minutes < 1) return `${Math.round(minutes*60)} sec`; if (minutes < 60) return `${Math.round(minutes)} min`; const h=Math.floor(minutes/60),m=Math.round(minutes%60); return m ? `${h}h ${m}m` : `${h}h`; };
+
+    function loadSettings() {
+      try { const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}'); return { ...DEFAULT_SETTINGS, ...saved }; }
+      catch (error) { return { ...DEFAULT_SETTINGS }; }
+    }
+    function saveSettingsLocal() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); } catch (error) { showToast('Browser storage is unavailable; settings may not persist.'); } }
+    function showToast(message) { const el=$('toast'); el.textContent=message; el.classList.add('show'); clearTimeout(toastTimer); toastTimer=setTimeout(()=>el.classList.remove('show'),2800); }
+
+    function parseTimestamp(ts, includeSeconds=true) {
+      if (!/^\d{12}(\d{2})?$/.test(ts)) return null;
+      const day=Number(ts.slice(0,2)), month=Number(ts.slice(2,4)), year=Number(ts.slice(4,8));
+      const hour=Number(ts.slice(8,10)), minute=Number(ts.slice(10,12)), second=includeSeconds && ts.length>=14 ? Number(ts.slice(12,14)) : 0;
+      const date=new Date(year,month-1,day,hour,minute,second);
+      if (date.getFullYear()!==year || date.getMonth()!==month-1 || date.getDate()!==day || hour>23 || minute>59 || second>59) return null;
+      return date;
+    }
+    function extractNumber(cell, regex) {
+      const match=cell.match(regex);
+      if (!match) return null;
+      const n=Number(match[1]);
+      return Number.isFinite(n) ? n : null;
+    }
+    function unwrapRows(payload) {
+      if (Array.isArray(payload)) return payload;
+      if (payload && Array.isArray(payload.data)) return payload.data;
+      if (payload && Array.isArray(payload.values)) return payload.values;
+      if (payload && Array.isArray(payload.rows)) return payload.rows;
+      throw new Error('Unexpected API response. Expected an array of Google Sheets rows.');
+    }
+    function parseGoogleSheetFormat(payload) {
+      const rows=unwrapRows(payload), dataPoints=[], gaps=[];
+      for (const row of rows) {
+        if (!Array.isArray(row)) continue;
+        for (let i=1;i<row.length;i++) {
+          const cell=row[i];
+          if (typeof cell!=='string' || !cell.trim()) continue;
+          const gapMatch=cell.match(/\|\s*(\d{12})-(\d{12})\s*\|/);
+          if (gapMatch) {
+            const start=parseTimestamp(gapMatch[1],false), end=parseTimestamp(gapMatch[2],false);
+            if (start && end && end>=start) gaps.push({start,end,source:'Explicit sheet marker'});
+            continue;
+          }
+          const timeMatch=cell.match(/\[(\d{14})\]/);
+          if (!timeMatch) continue;
+          const time=parseTimestamp(timeMatch[1],true);
+          if (!time) continue;
+          const rainMatch=cell.match(/\|\s*(RNY|RNN)\s*\|\s*(\d+(?:\.\d+)?)\s*%?/i);
+          const point={
+            time,
+            lux:extractNumber(cell,/LUX\s*([-+]?\d*\.?\d+)/i),
+            ahtTemp:extractNumber(cell,/TEM\s*([-+]?\d*\.?\d+)/i),
+            ahtHum:null,
+            pressure:extractNumber(cell,/PRS\s*([-+]?\d*\.?\d+)/i),
+            altitude:extractNumber(cell,/ALT\s*([-+]?\d*\.?\d+)/i),
+            radar:extractNumber(cell,/RDR\s*([-+]?\d*\.?\d+)/i),
+            sound:extractNumber(cell,/SND\s*([-+]?\d*\.?\d+)/i),
+            dhtTemp:extractNumber(cell,/ODT\s*([-+]?\d*\.?\d+)/i),
+            dhtHum:null,
+            dsTemp:extractNumber(cell,/(?<!O)DT\s*([-+]?\d*\.?\d+)/i),
+            rainCode:rainMatch ? rainMatch[1].toUpperCase() : null,
+            rainDensity:rainMatch ? Number(rainMatch[2]) : null,
+            raw:cell
+          };
+          const dhtHumMatch=cell.match(/ODT\s*[-+]?\d*\.?\d+\s*HUM\s*([-+]?\d*\.?\d+)/i);
+          if (dhtHumMatch) point.dhtHum=Number(dhtHumMatch[1]);
+          // AHT10 uses the first HUM token before the ODT outdoor-temperature token.
+          const odtIndex=cell.search(/ODT\s*[-+]?\d*\.?\d+/i);
+          const humMatches=[...cell.matchAll(/HUM\s*([-+]?\d*\.?\d+)/ig)];
+          const indoorHum=humMatches.find(m=>odtIndex<0 || m.index<odtIndex);
+          if (indoorHum) point.ahtHum=Number(indoorHum[1]);
+          dataPoints.push(point);
         }
+      }
+      dataPoints.sort((a,b)=>a.time-b.time);
+      gaps.sort((a,b)=>a.start-b.start);
+      return {dataPoints,gaps};
+    }
 
-        function setFilter(mode) {
-            currentFilterMode = mode;
-            ['today', 'yesterday', '3days', '7days'].forEach(id => {
-                document.getElementById('flt-' + id).classList.remove('active');
-            });
-            document.getElementById('flt-' + mode).classList.add('active');
-            applyFilterAndUpdate();
-        }
+    async function fetchSensorData(manual=false) {
+      const refreshBtn=$('refreshBtn'), glyph=$('refreshGlyph');
+      refreshBtn.disabled=true; glyph.innerHTML='<span class="loader"></span>';
+      setConnection('syncing','Syncing'); $('footerStatus').textContent='API: requesting latest sheet records…';
+      const controller=new AbortController(); const timeout=setTimeout(()=>controller.abort(),20000);
+      try {
+        const response=await fetch(API_URL,{method:'GET',cache:'no-store',signal:controller.signal,headers:{'Accept':'application/json'}});
+        if (!response.ok) throw new Error(`HTTP ${response.status} ${response.statusText}`);
+        const payload=await response.json();
+        const parsed=parseGoogleSheetFormat(payload);
+        allPoints=parsed.dataPoints; explicitGaps=parsed.gaps; lastSuccessfulFetch=new Date(); apiError='';
+        applyFilterAndUpdate();
+        setConnectionFromTelemetry();
+        $('footerStatus').textContent=`API: synced ${lastSuccessfulFetch.toLocaleTimeString()} · ${allPoints.length.toLocaleString()} parsed packets · local settings only`;
+        if (manual) showToast(`Sync complete · ${allPoints.length.toLocaleString()} telemetry records`);
+      } catch (error) {
+        apiError=error.name==='AbortError' ? 'Request timed out after 20 seconds' : error.message;
+        setConnection('offline','API error');
+        $('linkMetric').textContent='ERROR'; $('linkNote').textContent=apiError;
+        $('footerStatus').textContent=`API error: ${apiError}`;
+        renderAlerts();
+        if (manual) showToast(`Could not sync: ${apiError}`);
+      } finally {
+        clearTimeout(timeout); refreshBtn.disabled=false; glyph.textContent='↻';
+      }
+    }
 
-        function applyFilterAndUpdate() {
-            let start = new Date();
-            let end = new Date();
-            
-            if (currentFilterMode === 'today') {
-                start.setHours(0,0,0,0);
-                end.setHours(23,59,59,999);
-            } else if (currentFilterMode === 'yesterday') {
-                start.setDate(start.getDate() - 1); start.setHours(0,0,0,0);
-                end.setDate(end.getDate() - 1); end.setHours(23,59,59,999);
-            } else if (currentFilterMode === '3days') {
-                start.setDate(start.getDate() - 2); start.setHours(0,0,0,0);
-            } else if (currentFilterMode === '7days') {
-                start.setDate(start.getDate() - 6); start.setHours(0,0,0,0);
-            }
+    function setConnection(state,label) {
+      const dot=$('connectionDot'); dot.className=`dot ${state==='live'?'live':state==='warn'?'warn':state==='offline'?'offline':''}`;
+      $('connectionLabel').textContent=label;
+    }
+    function setConnectionFromTelemetry() {
+      if (apiError) { setConnection('offline','API unavailable'); return; }
+      if (!allPoints.length) { setConnection('offline','No telemetry'); return; }
+      const age=(Date.now()-allPoints[allPoints.length-1].time.getTime())/60000;
+      if (age>settings.offlineMinutes) setConnection('offline','Telemetry offline');
+      else if (age>settings.staleMinutes) setConnection('warn','Telemetry stale');
+      else setConnection('live','Telemetry live');
+    }
 
-            const filteredPoints = globalDataPoints.filter(p => p.time >= start && p.time <= end);
-            const filteredGaps = globalGaps.filter(g => g.end >= start && g.start <= end);
-            
-            updateDashboards(filteredPoints, filteredGaps, currentFilterMode);
-        }
+    function getRangeBounds() {
+      const now=new Date(); let start=new Date(now), end=new Date(now); end.setHours(23,59,59,999);
+      if (currentRange==='custom' && customRange) return {start:new Date(customRange.start+'T00:00:00'),end:new Date(customRange.end+'T23:59:59.999')};
+      if (currentRange==='today') start.setHours(0,0,0,0);
+      else if (currentRange==='yesterday') { start.setDate(start.getDate()-1); start.setHours(0,0,0,0); end.setDate(end.getDate()-1); end.setHours(23,59,59,999); }
+      else if (currentRange==='3days') { start.setDate(start.getDate()-2); start.setHours(0,0,0,0); }
+      else if (currentRange==='7days') { start.setDate(start.getDate()-6); start.setHours(0,0,0,0); }
+      else if (currentRange==='30days') { start.setDate(start.getDate()-29); start.setHours(0,0,0,0); }
+      else if (currentRange==='90days') { start.setDate(start.getDate()-89); start.setHours(0,0,0,0); }
+      else if (currentRange==='all') start=new Date(0);
+      return {start,end};
+    }
+    function detectGaps(points, storedGaps) {
+      const gaps=[...storedGaps.map(g=>({...g}))];
+      for(let i=1;i<points.length;i++) {
+        const delta=(points[i].time-points[i-1].time)/60000;
+        if (delta>settings.gapMinutes) gaps.push({start:points[i-1].time,end:points[i].time,source:'Inferred from packet interval'});
+      }
+      gaps.sort((a,b)=>a.start-b.start);
+      const merged=[];
+      for(const gap of gaps) {
+        const prev=merged[merged.length-1];
+        if(prev && gap.start<=prev.end) { if(gap.end>prev.end) prev.end=gap.end; prev.source=prev.source.includes(gap.source)?prev.source:`${prev.source} + ${gap.source}`; }
+        else merged.push({...gap});
+      }
+      return merged;
+    }
+    function applyFilterAndUpdate() {
+      const {start,end}=getRangeBounds();
+      filteredPoints=allPoints.filter(p=>p.time>=start && p.time<=end);
+      const candidateGaps=explicitGaps.filter(g=>g.end>=start && g.start<=end);
+      filteredGaps=detectGaps(filteredPoints,candidateGaps);
+      updateDashboard();
+    }
 
-        function parseGoogleSheetFormat(rows) {
-            const dataPoints = [];
-            const gaps = [];
-            
-            rows.forEach(row => {
-                for (let i = 1; i < row.length; i++) {
-                    const cell = row[i];
-                    if (!cell || typeof cell !== 'string') continue;
-                    
-                    if (cell.startsWith('|')) {
-                        const gapMatch = cell.match(/\| (\d{12})-(\d{12}) \|/);
-                        if (gapMatch) {
-                            const parseDate = (ts) => new Date(ts.slice(4,8), parseInt(ts.slice(2,4))-1, ts.slice(0,2), ts.slice(8,10), ts.slice(10,12));
-                            gaps.push({ start: parseDate(gapMatch[1]), end: parseDate(gapMatch[2]) });
-                        }
-                        continue;
-                    }
-                    
-                    if (cell.startsWith('[')) {
-                        const timeMatch = cell.match(/\[(\d{14})\]/);
-                        if (!timeMatch) continue;
-                        const ts = timeMatch[1];
-                        const dateObj = new Date(ts.slice(4,8), parseInt(ts.slice(2,4))-1, ts.slice(0,2), ts.slice(8,10), ts.slice(10,12), ts.slice(12,14));
-                        const extract = (regex) => { const m = cell.match(regex); return m ? parseFloat(m[1]) : null; };
+    function calcStats(values) {
+      const valid=values.filter(v=>v!==null && Number.isFinite(v));
+      if(!valid.length) return {min:null,max:null,avg:null,count:0};
+      return {min:Math.min(...valid),max:Math.max(...valid),avg:valid.reduce((a,b)=>a+b,0)/valid.length,count:valid.length};
+    }
+    function trendFor(key,points=filteredPoints) {
+      const valid=points.filter(p=>p[key]!==null && Number.isFinite(p[key]));
+      if(valid.length<5) return 'Insufficient samples';
+      const old=valid[Math.max(0,valid.length-30)][key];
+      const latest=valid[valid.length-1][key];
+      const diff=latest-old;
+      if(Math.abs(diff)<0.5) return 'Stable';
+      return `${diff>0?'Rising':'Falling'} ${diff>0?'+':''}${diff.toFixed(1)}`;
+    }
+    function getLatestFor(key, points=filteredPoints) { for(let i=points.length-1;i>=0;i--) if(points[i][key]!==null && Number.isFinite(points[i][key])) return points[i]; return null; }
+    function formatFieldValue(key,value) {
+      if(value===null || value===undefined || !Number.isFinite(value)) return '—';
+      if(key==='lux') return Math.round(value).toLocaleString();
+      if(key==='radar') return `${Math.round(value)}`;
+      return Number(value).toFixed(1);
+    }
+    function sensorFreshness(sensorKey) {
+      const def=SENSOR_DEFS[sensorKey]; let latest=null;
+      for(let i=allPoints.length-1;i>=0;i--) { if(def.fields.some(k=>allPoints[i][k]!==null && Number.isFinite(allPoints[i][k]))) { latest=allPoints[i]; break; } }
+      if(!latest) return {state:'bad',label:'No data',age:null,latest:null};
+      const age=(Date.now()-latest.time.getTime())/60000;
+      if(age>settings.offlineMinutes) return {state:'bad',label:'Offline',age,latest};
+      if(age>settings.staleMinutes) return {state:'warn',label:'Stale',age,latest};
+      return {state:'good',label:'Online',age,latest};
+    }
+    function rangeCheck(point,key) {
+      const sensor=Object.values(SENSOR_DEFS).find(def=>def.fields.includes(key));
+      const bounds=sensor?.limits?.[key];
+      if(!bounds || point[key]===null) return true;
+      return point[key]>=bounds[0] && point[key]<=bounds[1];
+    }
+    function findInvalidValues(points) {
+      const invalid=[];
+      for(const p of points) for(const [key,value] of Object.entries(p)) if(FIELD_NAMES[key] && value!==null && !rangeCheck(p,key)) invalid.push({time:p.time,key,value});
+      return invalid;
+    }
 
-                        // Rain extraction logic
-                        const rainMatch = cell.match(/\|(RNY|RNN)\|\s*(\d+)%/);
+    function updateDashboard() {
+      renderSummary(); renderSensorCards(); renderExplorer(); renderHealth(); renderEvents(); renderRecentLog(); renderAlerts();
+      setConnectionFromTelemetry();
+    }
+    function renderSummary() {
+      const count=filteredPoints.length; const latest=allPoints[allPoints.length-1];
+      $('pointsMetric').textContent=count.toLocaleString(); $('pointsNote').textContent=`${currentRange==='custom'?'Custom range':currentRange==='all'?'All available history':currentRange.replace('days',' days')} · ${allPoints.length.toLocaleString()} total records`;
+      $('gapsMetric').textContent=filteredGaps.length.toString(); $('gapsNote').textContent=filteredGaps.length?'Explicit or inferred interruptions':'No interruptions found';
+      if(latest) {
+        const age=(Date.now()-latest.time.getTime())/60000;
+        const state=age>settings.offlineMinutes?'OFFLINE':age>settings.staleMinutes?'STALE':'ONLINE';
+        $('linkMetric').textContent=state; $('linkMetric').style.fontSize='clamp(16px,1.8vw,22px)';
+        $('linkNote').textContent=`Last packet ${formatTime(latest.time,true)} · ${formatDuration(age)} ago`;
+      } else { $('linkMetric').textContent='NO DATA'; $('linkNote').textContent=apiError||'No valid packets received'; }
+      if(count>=2) {
+        const elapsed=(filteredPoints[count-1].time-filteredPoints[0].time)/60000;
+        const expected=Math.max(1,Math.floor(elapsed/settings.sampleMinutes)+1);
+        const coverage=Math.min(100,(count/expected)*100);
+        $('coverageMetric').textContent=`${coverage.toFixed(1)}%`;
+        $('coverageNote').textContent=`Estimate · ${count.toLocaleString()} packets / ${expected.toLocaleString()} expected`;
+      } else { $('coverageMetric').textContent=count?'—':'0%'; $('coverageNote').textContent='Not enough packets to estimate'; }
+    }
+    function setHealthTag(el,state,label) { el.className=`health-tag ${state==='warn'?'warn':state==='bad'?'bad':''}`; el.innerHTML=`<span class="tiny-dot"></span>${safeText(label)}`; }
+    function drawSpark(canvas,values,color) {
+      if(!canvas) return;
+      const rect=canvas.getBoundingClientRect(),dpr=Math.min(window.devicePixelRatio||1,2),w=Math.max(80,rect.width),h=rect.height||28;
+      canvas.width=Math.round(w*dpr); canvas.height=Math.round(h*dpr);
+      const ctx=canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,w,h);
+      const vals=values.filter(v=>v!==null&&Number.isFinite(v)); if(vals.length<2) return;
+      let min=Math.min(...vals),max=Math.max(...vals); if(max===min){max+=1;min-=1;}
+      ctx.beginPath(); vals.forEach((v,i)=>{const x=5+(i/(vals.length-1))*(w-10),y=h-3-((v-min)/(max-min))*(h-7); if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
+      ctx.strokeStyle=color;ctx.lineWidth=1.6;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();
+    }
+    function renderSensorCards() {
+      document.querySelectorAll('.sensor-card').forEach(card=>{
+        const key=card.dataset.sensor,def=SENSOR_DEFS[key],fresh=sensorFreshness(key);
+        const stat=calcStats(filteredPoints.map(p=>p[def.primary]));
+        const liveLatest=getLatestFor(def.primary,allPoints);
+        const value=liveLatest?formatFieldValue(def.primary,liveLatest[def.primary]):'—';
+        const unit=def.unit;
+        card.querySelector('.sensor-value').innerHTML=`${safeText(value)} <span class="sensor-unit">${safeText(unit)}</span>`;
+        const meta=card.querySelector('.sensor-meta'); meta.children[0].textContent=key==='rain'?(liveLatest?.rainCode==='RNY'?'Rain detected':liveLatest?.rainCode==='RNN'?'No rain':'No rain status'):key==='radar'?(liveLatest?.radar>0?'Target detected':'No target recorded'):`Avg ${stat.avg===null?'—':fmt(stat.avg,key==='lux'?0:1)} ${unit}`;
+        setHealthTag(meta.children[1],fresh.state,fresh.label);
+        const range=calcStats(filteredPoints.map(p=>p[def.primary]));
+        card.querySelector('.sensor-range').textContent=`MIN ${range.min===null?'—':formatFieldValue(def.primary,range.min)} · MAX ${range.max===null?'—':formatFieldValue(def.primary,range.max)}`;
+        const sparkValues=filteredPoints.slice(-60).map(p=>p[def.primary]); drawSpark(card.querySelector('canvas'),sparkValues,def.color);
+        card.classList.toggle('selected',key===selectedSensor);
+      });
+    }
+    function buildChartConfig(key) {
+      const def=SENSOR_DEFS[key];
+      const step=Math.max(1,Math.ceil(filteredPoints.length/1800));
+      const chartPoints=filteredPoints.filter((p,i)=>i%step===0 || i===filteredPoints.length-1);
+      const labels=chartPoints.map(p=>formatTime(p.time,currentRange!=='today'&&currentRange!=='yesterday'));
+      const pointData=(field)=>chartPoints.map(p=>p[field]);
+      let datasets=[];
+      const make=(label,field,color,axis='y')=>({label,data:pointData(field),borderColor:color,backgroundColor:color+'20',fill:false,tension:.24,pointRadius:0,pointHoverRadius:4,borderWidth:2,spanGaps:false,yAxisID:axis});
+      if(key==='aht10') datasets=[make('Indoor temperature °C','ahtTemp','#65c7f0'),make('Indoor humidity %','ahtHum','#5de0cf','y1')];
+      else if(key==='dht11') datasets=[make('Outdoor temperature °C','dhtTemp','#70d9ae'),make('Outdoor humidity %','dhtHum','#73aaff','y1')];
+      else if(key==='rain') datasets=[{...make('Rain density %','rainDensity','#58c9ef'),stepped:'middle',fill:true}];
+      else if(key==='ds') datasets=[{...make('Device core °C','dsTemp','#ff8794'),fill:true}];
+      else if(key==='bmp') datasets=[make('Pressure hPa','pressure','#b29aff'),make('Altitude m','altitude','#ef88c1','y1')];
+      else if(key==='radar') datasets=[{...make('Radar distance cm','radar','#f4c16f'),pointRadius:3,showLine:false}];
+      else if(key==='sound') datasets=[{...make('Sound level dBFS','sound','#ed82c1'),stepped:'middle'}];
+      else if(key==='lux') datasets=[{...make('Illuminance lux','lux','#f1df75'),fill:true}];
+      const scales={x:{grid:{color:'rgba(140,165,190,.08)'},ticks:{color:'#7890aa',maxTicksLimit:8,maxRotation:0,font:{size:9}}},y:{grid:{color:'rgba(140,165,190,.09)'},ticks:{color:'#7890aa',font:{size:9}}}};
+      if(['aht10','dht11','bmp'].includes(key)) scales.y1={position:'right',grid:{drawOnChartArea:false},ticks:{color:'#7890aa',font:{size:9}}};
+      if(key==='rain') { scales.y.min=0;scales.y.max=100; }
+      if(key==='sound') { scales.y.min=-120;scales.y.max=0; }
+      if(key==='radar') { scales.y.reverse=true;scales.y.min=0;scales.y.title={display:true,text:'Closer / distance in cm',color:'#7890aa',font:{size:9}}; }
+      return {type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,animation:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:datasets.length>1,labels:{color:'#a9bed5',boxWidth:9,boxHeight:9,font:{size:9}}},tooltip:{backgroundColor:'#13243a',borderColor:'rgba(150,180,210,.25)',borderWidth:1,titleColor:'#e8f0fa',bodyColor:'#c3d3e4',padding:10,displayColors:true},zoom:{limits:{x:{min:0,max:Math.max(0,labels.length-1)}},pan:{enabled:true,mode:'x'},zoom:{wheel:{enabled:true},pinch:{enabled:true},mode:'x'}}},scales,elements:{line:{capBezierPoints:true}}}};
+    }
+    function renderExplorer() {
+      if(!$('chartSensor')) return;
+      $('chartSensor').value=selectedSensor;
+      const def=SENSOR_DEFS[selectedSensor]; const fresh=sensorFreshness(selectedSensor);
+      $('chartStatus').className=`health-tag ${fresh.state==='warn'?'warn':fresh.state==='bad'?'bad':''}`; $('chartStatus').innerHTML=`<span class="tiny-dot"></span>${safeText(fresh.label)}`;
+      $('chartPointCount').textContent=`${filteredPoints.length.toLocaleString()} PACKETS · ${def.fields.length} FIELD${def.fields.length===1?'':'S'}`;
+      const canvas=$('mainChart');
+      if(chartInstance) { chartInstance.destroy(); chartInstance=null; }
+      if(typeof Chart==='undefined') { $('chartWrap').innerHTML='<div class="empty">Chart.js could not load. Check your internet connection or CDN access.</div>'; return; }
+      const config=buildChartConfig(selectedSensor);
+      try { chartInstance=new Chart(canvas.getContext('2d'),config); }
+      catch(error) { console.error('Chart render error:',error); $('chartWrap').innerHTML='<div class="empty">Unable to render chart. Check the browser console for details.</div>'; }
+      renderChartTable();
+    }
+    function renderChartTable() {
+      const def=SENSOR_DEFS[selectedSensor];
+      $('chartTableHead').innerHTML=`<tr><th>Timestamp</th>${def.fields.map(k=>`<th>${safeText(FIELD_NAMES[k])}</th>`).join('')}</tr>`;
+      $('chartTableBody').innerHTML=[...filteredPoints].reverse().slice(0,500).map(p=>`<tr><td class="mono">${safeText(formatTime(p.time,true))}</td>${def.fields.map(k=>`<td class="mono">${safeText(formatFieldValue(k,p[k]))}</td>`).join('')}</tr>`).join('')||'<tr><td colspan="5" class="muted">No readings in this time window.</td></tr>';
+    }
+    function renderHealth() {
+      const cards=Object.entries(SENSOR_DEFS).map(([key,def])=>{
+        const fresh=sensorFreshness(key), latest=fresh.latest;
+        const latestVal=latest?def.fields.map(k=>`${FIELD_NAMES[k]} ${formatFieldValue(k,latest[k])}`).join(' · '):'No valid field has been received';
+        const invalid=filteredPoints.filter(p=>def.fields.some(k=>p[k]!==null&&!rangeCheck(p,k))).length;
+        const stateText=fresh.state==='good'?'NOMINAL':fresh.state==='warn'?'STALE':'OFFLINE';
+        return `<div class="health-card"><div class="health-card-top"><span class="health-card-name">${safeText(def.name)}</span><span class="health-state ${fresh.state==='warn'?'warn':fresh.state==='bad'?'bad':''}">${stateText}</span></div><div class="health-value">${fresh.age===null?'—':`${formatDuration(fresh.age)} ago`}</div><div class="health-sub">${safeText(latestVal)}${invalid?`<br><span style="color:var(--amber)">${invalid} out-of-range record(s)</span>`:''}</div></div>`;
+      }).join('');
+      $('healthGrid').innerHTML=cards;
+      const statuses=Object.keys(SENSOR_DEFS).map(sensorFreshness); const good=statuses.filter(s=>s.state==='good').length, warn=statuses.filter(s=>s.state==='warn').length, bad=statuses.filter(s=>s.state==='bad').length;
+      $('healthSummary').textContent=`${good} NOMINAL · ${warn} STALE · ${bad} OFFLINE`;
+      const invalid=findInvalidValues(filteredPoints); const totalFields=filteredPoints.length*Object.keys(FIELD_NAMES).length;
+      const missing=filteredPoints.reduce((sum,p)=>sum+Object.keys(FIELD_NAMES).filter(k=>p[k]===null).length,0);
+      const intervals=[]; for(let i=1;i<filteredPoints.length;i++) intervals.push((filteredPoints[i].time-filteredPoints[i-1].time)/60000);
+      $('intervalMetric').textContent=intervals.length?`${(intervals.reduce((a,b)=>a+b,0)/intervals.length).toFixed(1)}m`:'—';
+      $('longestGapMetric').textContent=intervals.length?formatDuration(Math.max(...intervals)):'—';
+      $('invalidMetric').textContent=invalid.length.toString(); $('missingMetric').textContent=totalFields?`${((missing/totalFields)*100).toFixed(1)}%`:'—';
+      const notes=[];
+      if(!allPoints.length) notes.push(['No telemetry','The dashboard has not parsed any valid timestamped packets. Check the Apps Script response and sheet format.']);
+      else {
+        notes.push(['Link status is inferred','A recent packet means the data path is recently active; it does not prove every ESP32 subsystem is healthy.']);
+        if(filteredGaps.length) notes.push(['Interruptions detected',`${filteredGaps.length} gap(s) were found. A gap may be caused by power, Wi-Fi, device reset, Apps Script or sheet logging. The cause is not identifiable from these records alone.`]);
+        if(invalid.length) notes.push(['Out-of-range values',`${invalid.length} value(s) fall outside broad plausibility limits. Review wiring, calibration and sensor output.`]);
+        if(!invalid.length&&!filteredGaps.length) notes.push(['No major data-quality flags','No long packet gaps or broad range violations were found in this selected window.']);
+        if(filteredPoints.length<2) notes.push(['Small sample size','Choose a wider time window to calculate coverage and packet intervals.']);
+      }
+      $('diagnosticNotes').innerHTML=notes.map(([title,detail])=>`<div class="alert-item"><div class="alert-mark">i</div><div><div class="alert-title">${safeText(title)}</div><div class="alert-detail">${safeText(detail)}</div></div></div>`).join('');
+    }
+    function buildRainEvents(points) {
+      const events=[]; let current=null;
+      for(const p of points) {
+        if(p.rainCode==='RNY') {
+          if(!current) current={start:p.time,end:null,peak:p.rainDensity??0,readings:0};
+          current.end=p.time; current.peak=Math.max(current.peak,p.rainDensity??0); current.readings++;
+        } else if(p.rainCode==='RNN' && current) { current.end=current.end||p.time; current.closedAt=p.time; events.push(current); current=null; }
+      }
+      if(current) { current.open=true; events.push(current); }
+      return events;
+    }
+    function renderEvents() {
+      const rainEvents=buildRainEvents(filteredPoints);
+      $('rainEventCount').textContent=`${rainEvents.length} EVENT${rainEvents.length===1?'':'S'}`;
+      $('rainEvents').innerHTML=rainEvents.length?[...rainEvents].reverse().map(ev=>`<div class="event-item"><div class="alert-mark" style="background:rgba(91,215,239,.12);color:var(--cyan)">☂</div><div style="min-width:0;flex:1"><div class="alert-title">Rain ${ev.open?'currently recorded':'event'}</div><div class="alert-detail">Start: ${safeText(formatTime(ev.start,true))} · ${ev.closedAt?'End: '+safeText(formatTime(ev.closedAt,true)):'Last wet packet: '+safeText(formatTime(ev.end,true))}</div><div class="alert-detail">Peak density: ${fmt(ev.peak,0)}% · ${ev.readings} wet packet(s)</div></div></div>`).join(''):'<div class="empty">No rain events were recorded in this time window.</div>';
+      $('gapEventCount').textContent=`${filteredGaps.length} GAP${filteredGaps.length===1?'':'S'}`;
+      $('gapEvents').innerHTML=filteredGaps.length?[...filteredGaps].reverse().map(g=>`<div class="event-item"><div class="alert-mark" style="background:rgba(255,114,128,.1);color:var(--red)">⌁</div><div style="min-width:0;flex:1"><div class="alert-title">Telemetry interruption · ${safeText(formatDuration((g.end-g.start)/60000))}</div><div class="alert-detail">${safeText(formatTime(g.start,true))} → ${safeText(formatTime(g.end,true))}</div><div class="alert-detail">${safeText(g.source)}</div></div></div>`).join(''):'<div class="empty">No interruptions detected in this time window.</div>';
+    }
+    function renderRecentLog() {
+      $('recentLogBody').innerHTML=[...filteredPoints].reverse().slice(0,150).map(p=>`<tr><td class="mono">${safeText(formatTime(p.time,true))}</td><td>${fmt(p.ahtTemp)}</td><td>${fmt(p.ahtHum)}</td><td>${fmt(p.dhtTemp)}</td><td>${fmt(p.dhtHum)}</td><td>${fmt(p.dsTemp)}</td><td>${fmt(p.pressure)}</td><td>${p.rainCode?`${p.rainCode} ${fmt(p.rainDensity,0)}%`:'—'}</td><td>${formatFieldValue('lux',p.lux)}</td><td>${formatFieldValue('radar',p.radar)}</td><td>${fmt(p.sound)}</td></tr>`).join('')||'<tr><td colspan="11" class="muted">No readings in this time window.</td></tr>';
+    }
+    function renderAlerts() {
+      const alerts=[]; const latest=allPoints[allPoints.length-1];
+      if(apiError) alerts.push({level:'critical',title:'Data API unavailable',detail:apiError});
+      if(!latest && !apiError) alerts.push({level:'critical',title:'No valid telemetry',detail:'No timestamped sensor records were found in the API response.'});
+      if(latest) {
+        const age=(Date.now()-latest.time.getTime())/60000;
+        if(age>settings.offlineMinutes) alerts.push({level:'critical',title:'Telemetry link appears offline',detail:`Latest recorded packet was ${formatDuration(age)} ago. This is based on packet age, not a direct ESP32 network test.`});
+        else if(age>settings.staleMinutes) alerts.push({level:'warning',title:'Telemetry is stale',detail:`Latest packet was ${formatDuration(age)} ago. Check Wi-Fi, ESP32 power and the Apps Script logger.`});
+      }
+      const latestIndoorTemp=getLatestFor('ahtTemp',allPoints);
+      if(latestIndoorTemp && latestIndoorTemp.ahtTemp>=settings.indoorTempMax) alerts.push({level:'warning',title:'Indoor temperature is above configured limit',detail:`AHT10 recorded ${fmt(latestIndoorTemp.ahtTemp)}°C. Configured limit: ${settings.indoorTempMax}°C.`});
+      const latestIndoorHumidity=getLatestFor('ahtHum',allPoints);
+      if(latestIndoorHumidity && (latestIndoorHumidity.ahtHum<settings.indoorHumMin || latestIndoorHumidity.ahtHum>settings.indoorHumMax)) alerts.push({level:'warning',title:'Indoor humidity is outside configured range',detail:`AHT10 recorded ${fmt(latestIndoorHumidity.ahtHum,0)}%. Configured range: ${settings.indoorHumMin}%–${settings.indoorHumMax}%.`});
+      const latestCore=getLatestFor('dsTemp',allPoints);
+      if(latestCore && latestCore.dsTemp>=settings.coreLimit) alerts.push({level:'critical',title:'Device core temperature threshold exceeded',detail:`DS18B20 recorded ${fmt(latestCore.dsTemp)}°C. Configured warning threshold: ${settings.coreLimit}°C.`});
+      if(filteredGaps.length) alerts.push({level:'warning',title:`${filteredGaps.length} telemetry interruption(s) detected`,detail:'Review Events & Logs. The cause cannot be determined from the current sensor log alone.'});
+      const invalid=findInvalidValues(filteredPoints); if(invalid.length) alerts.push({level:'warning',title:`${invalid.length} out-of-range value(s)`,detail:'One or more values exceed broad sanity limits. Check the affected sensor and its wiring/calibration.'});
+      const section=$('alertsSection'); $('alertCount').textContent=`${alerts.length} active`;
+      if(!alerts.length) { section.classList.add('hidden'); return; }
+      section.classList.remove('hidden');
+      $('alertsList').innerHTML=alerts.map(a=>`<div class="alert-item ${a.level==='critical'?'critical':''}"><div class="alert-mark">${a.level==='critical'?'!':'△'}</div><div><div class="alert-title">${safeText(a.title)}</div><div class="alert-detail">${safeText(a.detail)}</div></div></div>`).join('');
+      maybeNotify(alerts);
+    }
+    function maybeNotify(alerts) {
+      if(!('Notification' in window) || Notification.permission!=='granted') return;
+      const nowKeys=new Set(alerts.map(a=>a.title));
+      for(const a of alerts) if(!lastNotificationKeys.has(a.title)) { try { new Notification(`Smart Home: ${a.title}`,{body:a.detail,tag:a.title}); } catch(error) { console.warn('Notification error:',error); } }
+      lastNotificationKeys=nowKeys;
+    }
 
-                        dataPoints.push({
-                            time: dateObj,
-                            lux: extract(/LUX([\d.]+)/),
-                            ahtTemp: extract(/TEM([-\d.]+)/),
-                            ahtHum: extract(/HUM([\d.]+)/),
-                            pressure: extract(/PRS([\d.]+)/),
-                            altitude: extract(/ALT([-\d.]+)/),
-                            radar: extract(/RDR(\d+)/),
-                            sound: extract(/SND([-\d.]+)/),
-                            dhtTemp: extract(/ODT([-\d.]+)/),
-                            dhtHum: extract(/ODT[-\d.]+HUM([\d.]+)/),
-                            dsTemp: extract(/DT([-\d.]+)/),
-                            rainCode: rainMatch ? rainMatch[1] : 'RNN',
-                            rainDensity: rainMatch ? parseInt(rainMatch[2], 10) : 0
-                        });
-                    }
-                }
-            });
-            return { dataPoints: dataPoints.sort((a, b) => a.time - b.time), gaps };
-        }
+    function csvEscape(value) { const s=String(value??''); return `"${s.replace(/"/g,'""')}"`; }
+    function downloadFile(filename,content,mime='text/csv;charset=utf-8') {
+      const blob=new Blob(['\ufeff',content],{type:mime}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1000);
+    }
+    function exportCSV() {
+      const headers=['Timestamp','Lux','IndoorTemp_C','IndoorHumidity_pct','Pressure_hPa','Altitude_m','Radar_cm','Sound_dBFS','OutdoorTemp_C','OutdoorHumidity_pct','CoreTemp_C','RainCode','RainDensity_pct'];
+      const rows=filteredPoints.map(p=>[p.time.toISOString(),p.lux,p.ahtTemp,p.ahtHum,p.pressure,p.altitude,p.radar,p.sound,p.dhtTemp,p.dhtHum,p.dsTemp,p.rainCode,p.rainDensity]);
+      downloadFile(`smart-home-telemetry-${localDateKey(new Date())}.csv`,[headers,...rows].map(row=>row.map(csvEscape).join(',')).join('\r\n'));
+      showToast(`Exported ${rows.length} records to CSV`);
+    }
+    function exportEvents() {
+      const rows=[['Type','Start','End','Duration_minutes','Peak_density_pct','Source']];
+      buildRainEvents(filteredPoints).forEach(e=>rows.push(['Rain',e.start.toISOString(),e.closedAt?e.closedAt.toISOString():'',e.closedAt?(e.closedAt-e.start)/60000:'',e.peak,'Reconstructed from RNY/RNN packets']));
+      filteredGaps.forEach(g=>rows.push(['Telemetry gap',g.start.toISOString(),g.end.toISOString(),(g.end-g.start)/60000,'',g.source]));
+      downloadFile(`smart-home-events-${localDateKey(new Date())}.csv`,rows.map(r=>r.map(csvEscape).join(',')).join('\r\n'));
+      showToast('Event report exported');
+    }
 
-        // ==========================================
-        // 3. UI GENERATION & MATH
-        // ==========================================
-        function calcStats(array) {
-            const valid = array.filter(v => v !== null && !isNaN(v));
-            if(valid.length === 0) return {max:'--', min:'--', avg:'--'};
-            return { max: Math.max(...valid).toFixed(1), min: Math.min(...valid).toFixed(1), avg: (valid.reduce((a,b)=>a+b,0)/valid.length).toFixed(1) };
-        }
+    function selectRange(range) {
+      currentRange=range; customRange=null;
+      document.querySelectorAll('.filter-btn[data-range]').forEach(btn=>btn.classList.toggle('active',btn.dataset.range===range));
+      applyFilterAndUpdate();
+    }
+    function openSettings() {
+      $('coreLimit').value=settings.coreLimit; $('indoorTempMax').value=settings.indoorTempMax; $('indoorHumMin').value=settings.indoorHumMin; $('indoorHumMax').value=settings.indoorHumMax; $('staleMinutes').value=settings.staleMinutes; $('offlineMinutes').value=settings.offlineMinutes; $('sampleMinutes').value=settings.sampleMinutes; $('refreshSeconds').value=settings.refreshSeconds; $('gapMinutes').value=settings.gapMinutes;
+      $('settingsModal').classList.add('open');
+    }
+    function closeSettings() { $('settingsModal').classList.remove('open'); }
+    function readAndValidateSettings() {
+      const next={coreLimit:Number($('coreLimit').value),indoorTempMax:Number($('indoorTempMax').value),indoorHumMin:Number($('indoorHumMin').value),indoorHumMax:Number($('indoorHumMax').value),staleMinutes:Number($('staleMinutes').value),offlineMinutes:Number($('offlineMinutes').value),sampleMinutes:Number($('sampleMinutes').value),refreshSeconds:Number($('refreshSeconds').value),gapMinutes:Number($('gapMinutes').value)};
+      for(const [key,value] of Object.entries(next)) if(!Number.isFinite(value)||value<=0) throw new Error(`Invalid setting: ${key}`);
+      if(next.offlineMinutes<=next.staleMinutes) throw new Error('Offline threshold must be greater than the stale threshold.');
+      if(next.indoorHumMin>=next.indoorHumMax) throw new Error('Indoor humidity low limit must be below the high limit.');
+      return next;
+    }
+    function scheduleRefresh() { clearInterval(refreshTimer); refreshTimer=setInterval(()=>fetchSensorData(false),settings.refreshSeconds*1000); }
+    function setClock() { const now=new Date(); $('liveClock').textContent=now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'}); $('liveDate').textContent=now.toLocaleDateString([], {weekday:'short',day:'2-digit',month:'short',year:'numeric'}); }
+    function navigateTo(id) {
+      const target=$(id); if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+      document.querySelectorAll('[data-target]').forEach(btn=>btn.classList.toggle('active',btn.dataset.target===id));
+    }
 
-        function calcTrend(dataPoints, key) {
-            if(dataPoints.length < 5) return {text: '--', color: 'text-slate-400'};
-            const latest = dataPoints[dataPoints.length-1][key];
-            const oldIndex = Math.max(0, dataPoints.length - 30);
-            const old = dataPoints[oldIndex][key];
-            if(latest === null || old === null) return {text: '--', color: 'text-slate-400'};
-            
-            const diff = (latest - old).toFixed(1);
-            if(diff > 0.5) return {text: `▲ +${diff}`, color: 'text-rose-400'};
-            if(diff < -0.5) return {text: `▼ ${diff}`, color: 'text-blue-400'};
-            return {text: `▶ Flat`, color: 'text-slate-400'};
-        }
+    // Navigation and controls.
+    document.querySelectorAll('[data-target]').forEach(btn=>btn.addEventListener('click',()=>navigateTo(btn.dataset.target)));
+    document.querySelectorAll('.filter-btn[data-range]').forEach(btn=>btn.addEventListener('click',()=>selectRange(btn.dataset.range)));
+    document.querySelectorAll('.sensor-card').forEach(card=>card.addEventListener('click',()=>{selectedSensor=card.dataset.sensor;$('chartSensor').value=selectedSensor;renderSensorCards();renderExplorer();navigateTo('analytics');}));
+    $('chartSensor').addEventListener('change',e=>{selectedSensor=e.target.value;renderSensorCards();renderExplorer();});
+    $('refreshBtn').addEventListener('click',()=>fetchSensorData(true));
+    $('exportBtn').addEventListener('click',exportCSV); $('exportLogBtn').addEventListener('click',exportCSV); $('exportEventsBtn').addEventListener('click',exportEvents);
+    $('settingsBtn').addEventListener('click',openSettings); $('sideSettings').addEventListener('click',openSettings); $('closeSettings').addEventListener('click',closeSettings);
+    $('settingsModal').addEventListener('click',e=>{if(e.target===$('settingsModal'))closeSettings();});
+    $('saveSettings').addEventListener('click',()=>{try{settings=readAndValidateSettings();saveSettingsLocal();scheduleRefresh();closeSettings();applyFilterAndUpdate();showToast('Settings saved on this browser');}catch(error){showToast(error.message);}});
+    $('resetSettings').addEventListener('click',()=>{settings={...DEFAULT_SETTINGS};saveSettingsLocal();openSettings();scheduleRefresh();showToast('Default settings restored');});
+    $('applyCustom').addEventListener('click',()=>{const start=$('fromDate').value,end=$('toDate').value;if(!start||!end){showToast('Choose both start and end dates.');return;}if(start>end){showToast('Start date must be before end date.');return;}customRange={start,end};currentRange='custom';document.querySelectorAll('.filter-btn[data-range]').forEach(b=>b.classList.remove('active'));applyFilterAndUpdate();showToast('Custom date range applied');});
+    $('resetZoomBtn').addEventListener('click',()=>{if(chartInstance&&typeof chartInstance.resetZoom==='function')chartInstance.resetZoom();else showToast('Chart zoom is not available.');});
+    $('chartTableBtn').addEventListener('click',()=>{const hidden=$('chartTableWrap').classList.toggle('hidden');$('chartWrap').classList.toggle('hidden',!hidden);$('chartTableBtn').textContent=hidden?'View data table':'View chart';});
+    $('notifyBtn').addEventListener('click',async()=>{if(!('Notification' in window)){showToast('This browser does not support notifications.');return;}try{const permission=await Notification.requestPermission();showToast(permission==='granted'?'Browser alerts enabled.':'Notification permission was not granted.');}catch(error){showToast('Could not request notification permission.');}});
+    window.addEventListener('resize',()=>{document.querySelectorAll('.spark').forEach(canvas=>{const key=canvas.dataset.spark,def=SENSOR_DEFS[key];drawSpark(canvas,filteredPoints.slice(-60).map(p=>p[def.primary]),def.color);});});
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSettings();if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='r'){e.preventDefault();fetchSensorData(true);}});
 
-        function updateDashboards(viewData, viewGaps, filterMode) {
-            const alertsSection = document.getElementById('alertsSection');
-            const alertsList = document.getElementById('alertsList');
-            alertsList.innerHTML = '';
-            if (viewGaps.length > 0) {
-                alertsSection.classList.remove('hidden');
-                viewGaps.forEach(gap => {
-                    alertsList.innerHTML += `<li>• Offline: ${gap.start.toLocaleDateString()} ${gap.start.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})} ➔ ${gap.end.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}</li>`;
-                });
-            } else { alertsSection.classList.add('hidden'); }
-
-            if(viewData.length > 0) {
-                // Sensors Stats
-                const ahtT = calcStats(viewData.map(d=>d.ahtTemp)); document.getElementById('ahtTAvg').innerText = ahtT.avg; document.getElementById('ahtTHi').innerText = ahtT.max; document.getElementById('ahtTLo').innerText = ahtT.min;
-                const ahtH = calcStats(viewData.map(d=>d.ahtHum)); document.getElementById('ahtHAvg').innerText = Math.round(ahtH.avg); document.getElementById('ahtHHi').innerText = Math.round(ahtH.max); document.getElementById('ahtHLo').innerText = Math.round(ahtH.min);
-                
-                const tt = calcTrend(viewData, 'ahtTemp'); document.getElementById('ahtTTrend').innerText = tt.text; document.getElementById('ahtTTrend').className = `text-[10px] mt-1 font-semibold ${tt.color}`;
-                const ht = calcTrend(viewData, 'ahtHum'); document.getElementById('ahtHTrend').innerText = ht.text; document.getElementById('ahtHTrend').className = `text-[10px] mt-1 font-semibold ${ht.color}`;
-
-                const dhtT = calcStats(viewData.map(d=>d.dhtTemp)); document.getElementById('dhtTAvg').innerText = dhtT.avg; document.getElementById('dhtTHi').innerText = dhtT.max; document.getElementById('dhtTLo').innerText = dhtT.min;
-                const dhtH = calcStats(viewData.map(d=>d.dhtHum)); document.getElementById('dhtHAvg').innerText = Math.round(dhtH.avg); document.getElementById('dhtHHi').innerText = Math.round(dhtH.max); document.getElementById('dhtHLo').innerText = Math.round(dhtH.min);
-
-                const ds = calcStats(viewData.map(d=>d.dsTemp)); document.getElementById('dsMax').innerText = ds.max + ' °C';
-                const coreBadge = document.getElementById('coreStatus');
-                if (parseFloat(ds.max) > 50) { coreBadge.innerText = "WARNING: HOT"; coreBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-rose-500 text-white animate-pulse"; } 
-                else { coreBadge.innerText = "SAFE"; coreBadge.className = "text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/50"; }
-
-                const bmp = calcStats(viewData.map(d=>d.pressure)); document.getElementById('bmpPAvg').innerText = bmp.avg;
-                const alt = calcStats(viewData.map(d=>d.altitude)); document.getElementById('bmpAAvg').innerText = alt.avg;
-
-                // --- RAIN LOGIC CALCULATION ---
-                let rainStartTime = "--:--";
-                let rainEndTime = "--:--";
-                let currentlyRaining = false;
-                
-                const latestData = viewData[viewData.length - 1];
-                const latestStatus = latestData.rainCode;
-                const latestDensity = latestData.rainDensity;
-
-                viewData.forEach(d => {
-                    const timeStr = d.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-                    if (d.rainCode === "RNY" && !currentlyRaining) {
-                        rainStartTime = timeStr;
-                        rainEndTime = "Raining Now...";
-                        currentlyRaining = true;
-                    } else if (d.rainCode === "RNN" && currentlyRaining) {
-                        rainEndTime = timeStr;
-                        currentlyRaining = false;
-                    }
-                });
-
-                const statusEl = document.getElementById('rainStatusText');
-                if (latestStatus === "RNY") {
-                    statusEl.innerText = "RNY (Raining)";
-                    statusEl.className = "text-base font-bold text-cyan-400";
-                } else {
-                    statusEl.innerText = "RNN (Dry)";
-                    statusEl.className = "text-base font-bold text-emerald-400";
-                }
-                document.getElementById('rainDensityTxt').innerText = latestDensity;
-                document.getElementById('rainStart').innerText = rainStartTime;
-                document.getElementById('rainEnd').innerText = rainEndTime;
-                // ------------------------------
-
-                const buildTable = (tbodyId, colsFn) => {
-                    let html = '';
-                    [...viewData].reverse().forEach(d => { html += `<tr><td class="p-2 text-slate-400">${d.time.toLocaleDateString([],{day:'numeric',month:'short'})} ${d.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</td>${colsFn(d)}</tr>`; });
-                    document.getElementById(tbodyId).innerHTML = html;
-                };
-                buildTable('aht10-tbody', d => `<td class="p-2">${d.ahtTemp||'-'}</td><td class="p-2">${d.ahtHum||'-'}</td>`);
-                buildTable('dht11-tbody', d => `<td class="p-2">${d.dhtTemp||'-'}</td><td class="p-2">${d.dhtHum||'-'}</td>`);
-                buildTable('ds-tbody', d => `<td class="p-2 font-mono text-rose-300">${d.dsTemp||'-'}</td>`);
-                buildTable('bmp-tbody', d => `<td class="p-2">${d.pressure||'-'}</td><td class="p-2">${d.altitude||'-'}</td>`);
-            }
-
-            // ==========================================
-            // 4. CHART.JS CONFIGURATION (AUTO-SCALING & ZOOM)
-            // ==========================================
-            Chart.defaults.color = '#94a3b8';
-            Chart.defaults.font.family = 'inherit';
-            
-            const timeFormat = (filterMode === 'today' || filterMode === 'yesterday') ? { hour: 'ha' } : { hour: 'ha', day: 'MMM d' };
-            
-            const timeScaleOpts = { 
-                type: 'time', 
-                time: { unit: 'hour', displayFormats: timeFormat }, 
-                grid: { color: '#1e293b' },
-                ticks: { maxTicksLimit: 6 }
-            };
-
-            const zoomPluginOpts = {
-                zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
-                pan: { enabled: true, mode: 'x' }
-            };
-
-            const gapSegmenter = {
-                borderColor: ctx => (ctx.p1 && ctx.p0 && (ctx.p1.parsed.x - ctx.p0.parsed.x > 300000)) ? 'rgba(239, 68, 68, 1)' : undefined,
-                borderDash: ctx => (ctx.p1 && ctx.p0 && (ctx.p1.parsed.x - ctx.p0.parsed.x > 300000)) ? [4, 4] : undefined
-            };
-
-            const commonLineOpts = { pointRadius: 0, pointHitRadius: 20, pointHoverRadius: 6, borderWidth: 2, tension: 0.3, segment: gapSegmenter };
-
-            // 1. AHT10
-            createOrUpdateChart('chart-aht10', 'line', {
-                datasets: [
-                    { label: 'Temp °C', data: viewData.map(d => ({x: d.time, y: d.ahtTemp})), borderColor: '#60a5fa', yAxisID: 'y', ...commonLineOpts },
-                    { label: 'Hum %', data: viewData.map(d => ({x: d.time, y: d.ahtHum})), borderColor: '#22d3ee', yAxisID: 'y1', ...commonLineOpts }
-                ]
-            }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } }, plugins: { zoom: zoomPluginOpts, legend: { position: 'top', labels: { boxWidth: 10, usePointStyle: true } } } });
-
-            // 2. DHT11
-            createOrUpdateChart('chart-dht11', 'line', {
-                datasets: [
-                    { label: 'Out Temp °C', data: viewData.map(d => ({x: d.time, y: d.dhtTemp})), borderColor: '#34d399', backgroundColor: 'rgba(52, 211, 153, 0.1)', fill: true, yAxisID: 'y', ...commonLineOpts },
-                    { label: 'Out Hum %', data: viewData.map(d => ({x: d.time, y: d.dhtHum})), borderColor: '#0ea5e9', yAxisID: 'y1', ...commonLineOpts }
-                ]
-            }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } }, plugins: { zoom: zoomPluginOpts } });
-
-            // 3. NEW RAIN CHART
-            createOrUpdateChart('chart-rain', 'line', {
-                datasets: [{ 
-                    label: 'Density %', 
-                    data: viewData.map(d => ({x: d.time, y: d.rainDensity})), 
-                    borderColor: '#06b6d4', 
-                    backgroundColor: 'rgba(6, 182, 212, 0.15)', 
-                    fill: true, 
-                    stepped: 'middle',
-                    ...commonLineOpts 
-                }]
-            }, { scales: { x: timeScaleOpts, y: { min: 0, max: 100, grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
-
-            // 4. DS18B20 Core
-            createOrUpdateChart('chart-ds18b20', 'line', {
-                datasets: [{ label: 'Core Temp °C', data: viewData.map(d => ({x: d.time, y: d.dsTemp})), borderColor: '#fb7185', backgroundColor: 'rgba(251, 113, 133, 0.1)', fill: true, borderWidth: 2, pointRadius: 0, pointHitRadius: 20, segment: gapSegmenter }]
-            }, { scales: { x: timeScaleOpts, y: { grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
-
-            // 5. BMP280
-            createOrUpdateChart('chart-bmp280', 'line', {
-                datasets: [
-                    { label: 'hPa', data: viewData.map(d => ({x: d.time, y: d.pressure})), borderColor: '#c084fc', yAxisID: 'y', ...commonLineOpts },
-                    { label: 'Alt (m)', data: viewData.map(d => ({x: d.time, y: d.altitude})), borderColor: '#f472b6', yAxisID: 'y1', ...commonLineOpts }
-                ]
-            }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } }, plugins: { zoom: zoomPluginOpts } });
-
-            // 6. Radar Scatter
-            const activeRadar = viewData.filter(d => d.radar > 0 && d.radar !== null);
-            createOrUpdateChart('chart-radar', 'scatter', {
-                datasets: [{ label: 'Dist (cm)', data: activeRadar.map(d => ({x: d.time, y: d.radar})), backgroundColor: '#fbbf24', pointRadius: 3 }]
-            }, { scales: { x: timeScaleOpts, y: { reverse: true, min: 0, title: {display: true, text: 'Closer'}, grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
-
-            // 7. Sound
-            createOrUpdateChart('chart-sound', 'line', {
-                datasets: [{ label: 'dBFS', data: viewData.map(d => ({x: d.time, y: d.sound})), borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.15)', fill: true, stepped: 'middle', borderWidth: 1, pointRadius: 0 }]
-            }, { scales: { x: timeScaleOpts, y: { min: -90, max: 0, grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
-
-            // 8. Lux
-            createOrUpdateChart('chart-lux', 'line', {
-                datasets: [{ label: 'Lux', data: viewData.map(d => ({x: d.time, y: d.lux})), borderColor: '#fde047', backgroundColor: 'rgba(253, 224, 71, 0.1)', fill: true, ...commonLineOpts }]
-            }, { scales: { x: timeScaleOpts, y: { grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
-        }
-
-        function createOrUpdateChart(canvasId, type, data, options) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
-            if (charts[canvasId]) { charts[canvasId].destroy(); }
-            charts[canvasId] = new Chart(ctx, { type: type, data: data, options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, ...options } });
-        }
-        
-        function resetAllZooms() {
-            Object.values(charts).forEach(chart => { if(chart.resetZoom) chart.resetZoom(); });
-        }
-
-        function toggleView(sensor) {
-            const graph = document.getElementById(`${sensor}-graph`);
-            const table = document.getElementById(`${sensor}-table`);
-            if (graph.classList.contains('hidden')) { graph.classList.remove('hidden'); table.classList.add('hidden'); } 
-            else { graph.classList.add('hidden'); table.classList.remove('hidden'); }
-        }
-
-        // Start
-        fetchSensorData();
-        setInterval(() => fetchSensorData(false), 120000);
-
-    </script>
+    // Start application.
+    setClock(); setInterval(setClock,1000); scheduleRefresh(); fetchSensorData(false);
+    setInterval(()=>{setConnectionFromTelemetry();if(allPoints.length){renderSummary();renderAlerts();}},30000);
+  </script>
 </body>
 </html>
