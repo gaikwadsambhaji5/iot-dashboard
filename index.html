@@ -116,7 +116,25 @@
             </div>
         </section>
 
-        <!-- 3. DS18B20 Core Temp -->
+        <!-- 3. NEW RAIN ANALYTICS -->
+        <section class="glass-card p-5">
+            <h2 class="text-lg font-semibold text-cyan-300 flex items-center gap-2 mb-4">🌧️ Rain Analytics</h2>
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Status & Density</p>
+                    <p class="text-base font-bold" id="rainStatusText">--</p>
+                    <p class="text-[10px] mt-1 text-slate-400">Density: <span id="rainDensityTxt" class="text-cyan-200 font-mono">0</span>%</p>
+                </div>
+                <div class="bg-slate-800/60 p-2.5 rounded-xl border border-slate-700/50">
+                    <p class="text-[10px] text-slate-400 uppercase tracking-wider mb-1">Rain Event</p>
+                    <p class="text-[11px] text-slate-300">Start: <span id="rainStart" class="text-cyan-100 font-semibold">--:--</span></p>
+                    <p class="text-[11px] text-slate-300 mt-1">End: <span id="rainEnd" class="text-slate-400 font-semibold">--:--</span></p>
+                </div>
+            </div>
+            <div class="h-40 relative w-full"><canvas id="chart-rain"></canvas></div>
+        </section>
+
+        <!-- 4. DS18B20 Core Temp -->
         <section class="glass-card p-5">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-semibold text-rose-300 flex items-center gap-2">🔥 Device Core (DS18B20)</h2>
@@ -139,7 +157,7 @@
             </div>
         </section>
 
-        <!-- 4. BMP280 Altitude / Pressure -->
+        <!-- 5. BMP280 Altitude / Pressure -->
         <section class="glass-card p-5">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-lg font-semibold text-purple-300 flex items-center gap-2">🏔️ Barometric (BMP280)</h2>
@@ -161,19 +179,19 @@
             </div>
         </section>
 
-        <!-- 5. LD2420 Radar -->
+        <!-- 6. LD2420 Radar -->
         <section class="glass-card p-5">
             <h2 class="text-lg font-semibold text-amber-300 mb-2">📡 Radar Presence</h2>
             <div class="h-48 relative w-full"><canvas id="chart-radar"></canvas></div>
         </section>
 
-        <!-- 6. Sound INMP441 -->
+        <!-- 7. Sound INMP441 -->
         <section class="glass-card p-5">
             <h2 class="text-lg font-semibold text-pink-300 mb-2">🎙️ Acoustic Monitor</h2>
             <div class="h-40 relative w-full"><canvas id="chart-sound"></canvas></div>
         </section>
         
-        <!-- 7. Light BH1750 -->
+        <!-- 8. Light BH1750 -->
         <section class="glass-card p-5">
             <h2 class="text-lg font-semibold text-yellow-300 mb-2">☀️ Ambient Lux</h2>
             <div class="h-40 relative w-full"><canvas id="chart-lux"></canvas></div>
@@ -284,6 +302,9 @@
                         const dateObj = new Date(ts.slice(4,8), parseInt(ts.slice(2,4))-1, ts.slice(0,2), ts.slice(8,10), ts.slice(10,12), ts.slice(12,14));
                         const extract = (regex) => { const m = cell.match(regex); return m ? parseFloat(m[1]) : null; };
 
+                        // Rain extraction logic
+                        const rainMatch = cell.match(/\|(RNY|RNN)\|\s*(\d+)%/);
+
                         dataPoints.push({
                             time: dateObj,
                             lux: extract(/LUX([\d.]+)/),
@@ -295,7 +316,9 @@
                             sound: extract(/SND([-\d.]+)/),
                             dhtTemp: extract(/ODT([-\d.]+)/),
                             dhtHum: extract(/ODT[-\d.]+HUM([\d.]+)/),
-                            dsTemp: extract(/DT([-\d.]+)/)
+                            dsTemp: extract(/DT([-\d.]+)/),
+                            rainCode: rainMatch ? rainMatch[1] : 'RNN',
+                            rainDensity: rainMatch ? parseInt(rainMatch[2], 10) : 0
                         });
                     }
                 }
@@ -337,6 +360,7 @@
             } else { alertsSection.classList.add('hidden'); }
 
             if(viewData.length > 0) {
+                // Sensors Stats
                 const ahtT = calcStats(viewData.map(d=>d.ahtTemp)); document.getElementById('ahtTAvg').innerText = ahtT.avg; document.getElementById('ahtTHi').innerText = ahtT.max; document.getElementById('ahtTLo').innerText = ahtT.min;
                 const ahtH = calcStats(viewData.map(d=>d.ahtHum)); document.getElementById('ahtHAvg').innerText = Math.round(ahtH.avg); document.getElementById('ahtHHi').innerText = Math.round(ahtH.max); document.getElementById('ahtHLo').innerText = Math.round(ahtH.min);
                 
@@ -353,6 +377,40 @@
 
                 const bmp = calcStats(viewData.map(d=>d.pressure)); document.getElementById('bmpPAvg').innerText = bmp.avg;
                 const alt = calcStats(viewData.map(d=>d.altitude)); document.getElementById('bmpAAvg').innerText = alt.avg;
+
+                // --- RAIN LOGIC CALCULATION ---
+                let rainStartTime = "--:--";
+                let rainEndTime = "--:--";
+                let currentlyRaining = false;
+                
+                const latestData = viewData[viewData.length - 1];
+                const latestStatus = latestData.rainCode;
+                const latestDensity = latestData.rainDensity;
+
+                viewData.forEach(d => {
+                    const timeStr = d.time.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+                    if (d.rainCode === "RNY" && !currentlyRaining) {
+                        rainStartTime = timeStr;
+                        rainEndTime = "Raining Now...";
+                        currentlyRaining = true;
+                    } else if (d.rainCode === "RNN" && currentlyRaining) {
+                        rainEndTime = timeStr;
+                        currentlyRaining = false;
+                    }
+                });
+
+                const statusEl = document.getElementById('rainStatusText');
+                if (latestStatus === "RNY") {
+                    statusEl.innerText = "RNY (Raining)";
+                    statusEl.className = "text-base font-bold text-cyan-400";
+                } else {
+                    statusEl.innerText = "RNN (Dry)";
+                    statusEl.className = "text-base font-bold text-emerald-400";
+                }
+                document.getElementById('rainDensityTxt').innerText = latestDensity;
+                document.getElementById('rainStart').innerText = rainStartTime;
+                document.getElementById('rainEnd').innerText = rainEndTime;
+                // ------------------------------
 
                 const buildTable = (tbodyId, colsFn) => {
                     let html = '';
@@ -371,10 +429,8 @@
             Chart.defaults.color = '#94a3b8';
             Chart.defaults.font.family = 'inherit';
             
-            // Dynamic formatting based on if viewing multiple days or just one
             const timeFormat = (filterMode === 'today' || filterMode === 'yesterday') ? { hour: 'ha' } : { hour: 'ha', day: 'MMM d' };
-
-            // Removing min/max completely lets it auto-fit the data perfectly!
+            
             const timeScaleOpts = { 
                 type: 'time', 
                 time: { unit: 'hour', displayFormats: timeFormat }, 
@@ -410,12 +466,25 @@
                 ]
             }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } }, plugins: { zoom: zoomPluginOpts } });
 
-            // 3. DS18B20 Core
+            // 3. NEW RAIN CHART
+            createOrUpdateChart('chart-rain', 'line', {
+                datasets: [{ 
+                    label: 'Density %', 
+                    data: viewData.map(d => ({x: d.time, y: d.rainDensity})), 
+                    borderColor: '#06b6d4', 
+                    backgroundColor: 'rgba(6, 182, 212, 0.15)', 
+                    fill: true, 
+                    stepped: 'middle',
+                    ...commonLineOpts 
+                }]
+            }, { scales: { x: timeScaleOpts, y: { min: 0, max: 100, grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
+
+            // 4. DS18B20 Core
             createOrUpdateChart('chart-ds18b20', 'line', {
                 datasets: [{ label: 'Core Temp °C', data: viewData.map(d => ({x: d.time, y: d.dsTemp})), borderColor: '#fb7185', backgroundColor: 'rgba(251, 113, 133, 0.1)', fill: true, borderWidth: 2, pointRadius: 0, pointHitRadius: 20, segment: gapSegmenter }]
             }, { scales: { x: timeScaleOpts, y: { grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
 
-            // 4. BMP280
+            // 5. BMP280
             createOrUpdateChart('chart-bmp280', 'line', {
                 datasets: [
                     { label: 'hPa', data: viewData.map(d => ({x: d.time, y: d.pressure})), borderColor: '#c084fc', yAxisID: 'y', ...commonLineOpts },
@@ -423,18 +492,18 @@
                 ]
             }, { scales: { x: timeScaleOpts, y: { position: 'left' }, y1: { position: 'right', grid: {drawOnChartArea: false} } }, plugins: { zoom: zoomPluginOpts } });
 
-            // 5. Radar Scatter
+            // 6. Radar Scatter
             const activeRadar = viewData.filter(d => d.radar > 0 && d.radar !== null);
             createOrUpdateChart('chart-radar', 'scatter', {
                 datasets: [{ label: 'Dist (cm)', data: activeRadar.map(d => ({x: d.time, y: d.radar})), backgroundColor: '#fbbf24', pointRadius: 3 }]
             }, { scales: { x: timeScaleOpts, y: { reverse: true, min: 0, title: {display: true, text: 'Closer'}, grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
 
-            // 6. Sound
+            // 7. Sound
             createOrUpdateChart('chart-sound', 'line', {
                 datasets: [{ label: 'dBFS', data: viewData.map(d => ({x: d.time, y: d.sound})), borderColor: '#ec4899', backgroundColor: 'rgba(236, 72, 153, 0.15)', fill: true, stepped: 'middle', borderWidth: 1, pointRadius: 0 }]
             }, { scales: { x: timeScaleOpts, y: { min: -90, max: 0, grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
 
-            // 7. Lux
+            // 8. Lux
             createOrUpdateChart('chart-lux', 'line', {
                 datasets: [{ label: 'Lux', data: viewData.map(d => ({x: d.time, y: d.lux})), borderColor: '#fde047', backgroundColor: 'rgba(253, 224, 71, 0.1)', fill: true, ...commonLineOpts }]
             }, { scales: { x: timeScaleOpts, y: { grid: { color: '#1e293b' } } }, plugins: { zoom: zoomPluginOpts, legend: {display: false} } });
