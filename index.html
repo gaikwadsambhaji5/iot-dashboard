@@ -97,6 +97,9 @@
     .sensor-grid { grid-template-columns:repeat(4,minmax(0,1fr)); }
     .sensor-card { min-width:0; border:1px solid var(--line); background:linear-gradient(150deg,rgba(18,34,54,.96),rgba(12,24,40,.96)); border-radius:16px; padding:15px; text-align:left; color:var(--text); position:relative; overflow:hidden; transition:.18s ease; }
     .sensor-card:hover { border-color:rgba(91,215,239,.38); transform:translateY(-2px); box-shadow:0 12px 30px rgba(0,0,0,.18); }
+    #healthRecords .chart-wrap { min-width:0; }
+    #deviceConfigList .alert-item { align-items:center; }
+    #deviceConfigList .alert-detail { font-family:"DM Mono",monospace; }
     .sensor-card.selected { border-color:rgba(91,215,239,.62); box-shadow:inset 0 0 0 1px rgba(91,215,239,.14),0 0 25px rgba(91,215,239,.07); }
     .sensor-head { display:flex; align-items:center; justify-content:space-between; gap:8px; }
     .sensor-name { color:#c6d5e8; font-size:10px; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
@@ -277,6 +280,7 @@
         <button class="nav-btn" data-target="roomMonitoring"><span class="nav-icon">⌂</span> Room monitoring</button>
         <button class="nav-btn" data-target="analytics"><span class="nav-icon">⌁</span> Telemetry explorer</button>
         <button class="nav-btn" data-target="diagnostics"><span class="nav-icon">⊙</span> Diagnostics</button>
+        <button class="nav-btn" data-target="healthRecords"><span class="nav-icon">♥</span> Pulse / SpO₂ records</button>
         <button class="nav-btn" data-target="events"><span class="nav-icon">≋</span> Events & logs</button>
         <div class="side-label" style="margin-top:12px">System</div>
         <button class="nav-btn" id="sideSettings"><span class="nav-icon">⚙</span> System settings</button>
@@ -467,6 +471,34 @@
           </div>
         </section>
 
+        <section id="healthRecords" class="section">
+          <div class="section-head">
+            <div><div class="section-kicker">04 / Personal measurements</div><div class="section-title">Pulse & oxygen records</div><div class="section-desc">MAX30102 estimates grouped by the profile selected on the OLED. Values are experimental and are not medical-grade measurements.</div></div>
+            <div class="actions"><span class="health-tag" id="privateApiState">CLOUD LINK LOCKED</span><button class="btn small" id="privateRefreshBtn">↻ Refresh private data</button></div>
+          </div>
+          <div class="grid telemetry-strip" style="grid-template-columns:repeat(3,minmax(0,1fr))">
+            <div class="metric"><div class="metric-top">Latest heart rate</div><div class="metric-value" id="latestBpm">—</div><div class="metric-note" id="latestBpmNote">No profile selected</div></div>
+            <div class="metric"><div class="metric-top">Latest SpO₂ estimate</div><div class="metric-value" id="latestSpo2">—</div><div class="metric-note" id="latestSpo2Note">No profile selected</div></div>
+            <div class="metric"><div class="metric-top">Saved readings</div><div class="metric-value" id="healthRecordCount">0</div><div class="metric-note" id="healthRecordNote">Token-protected cloud records</div></div>
+          </div>
+          <div class="panel panel-pad" style="margin-bottom:13px">
+            <div class="explorer-top"><div><div class="section-title">Person history</div><div class="section-desc">Choose one profile to filter both charts and the record table.</div></div><select class="select" id="healthPersonFilter"><option value="ALL">All profiles</option></select></div>
+            <div class="grid two-col" style="margin-top:12px">
+              <div><div class="section-kicker">Heart rate / BPM</div><div class="chart-wrap" style="height:230px"><canvas id="healthHeartChart"></canvas></div></div>
+              <div><div class="section-kicker">Oxygen saturation / %</div><div class="chart-wrap" style="height:230px"><canvas id="healthSpo2Chart"></canvas></div></div>
+            </div>
+          </div>
+          <div class="grid two-col">
+            <div class="panel panel-pad"><div class="section-head"><div><div class="section-title">Recent measurements</div><div class="section-desc">Newest saved records first.</div></div></div><div class="table-wrap"><table><thead><tr><th>Timestamp</th><th>Person</th><th>Heart rate</th><th>SpO₂</th><th>Device / note</th></tr></thead><tbody id="healthRecordsBody"><tr><td colspan="5" class="muted">Connect the private API token to view readings.</td></tr></tbody></table></div></div>
+            <div class="panel panel-pad"><div class="section-head"><div><div class="section-title">Device configuration snapshot</div><div class="section-desc">Read-only mirror of settings last synced from the OLED.</div></div></div><div class="alert-list" id="deviceConfigList"><div class="empty">Waiting for OLED settings sync.</div></div></div>
+          </div>
+          <div class="grid two-col" style="margin-top:13px">
+            <div class="panel panel-pad"><div class="section-head"><div><div class="section-title">iPhone fan command queue</div><div class="section-desc">Recent FAN ON/OFF, speed, boost, light and mode commands.</div></div></div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Created</th><th>Command</th><th>Status</th></tr></thead><tbody id="irCommandQueueBody"><tr><td colspan="4" class="muted">No private API data.</td></tr></tbody></table></div></div>
+            <div class="panel panel-pad"><div class="section-head"><div><div class="section-title">Matrix message queue</div><div class="section-desc">Messages sent from Shortcuts for scrolling display.</div></div></div><div class="table-wrap"><table><thead><tr><th>ID</th><th>Created</th><th>Message</th><th>Status</th></tr></thead><tbody id="displayMessageQueueBody"><tr><td colspan="4" class="muted">No private API data.</td></tr></tbody></table></div></div>
+          </div>
+          <p class="setting-note" style="margin-top:10px">The MAX30102 code uses an optical pulse/SpO₂ estimation algorithm. Motion, fit, skin perfusion, ambient light, sensor placement and calibration affect results. Do not use these readings for diagnosis or treatment decisions.</p>
+        </section>
+
         <section id="events" class="section">
           <div class="section-head">
             <div><div class="section-kicker">04 / Event recorder</div><div class="section-title">Device activity, rain & telemetry events</div><div class="section-desc">Relay transitions are reconstructed from the sampled Google Sheets records.</div></div>
@@ -501,6 +533,7 @@
     <button class="dock-btn" data-target="roomMonitoring"><span>⌂</span>Rooms</button>
     <button class="dock-btn" data-target="analytics"><span>⌁</span>Charts</button>
     <button class="dock-btn" data-target="diagnostics"><span>⊙</span>Health</button>
+    <button class="dock-btn" data-target="healthRecords"><span>♥</span>Pulse</button>
     <button class="dock-btn" data-target="events"><span>≋</span>Events</button>
   </nav>
 
@@ -518,8 +551,9 @@
           <div class="field"><label for="sampleMinutes">Expected sample interval (minutes)</label><input id="sampleMinutes" type="number" min="1" max="60" step="1" /></div>
           <div class="field"><label for="refreshSeconds">Dashboard refresh (seconds)</label><input id="refreshSeconds" type="number" min="30" max="1800" step="30" /></div>
           <div class="field"><label for="gapMinutes">Count a gap after (minutes)</label><input id="gapMinutes" type="number" min="2" max="1440" step="1" /></div>
+          <div class="field" style="grid-column:1/-1"><label for="cloudApiToken">Private API token (64-character hex)</label><input id="cloudApiToken" type="password" autocomplete="off" placeholder="Paste the new token used in Apps Script and secrets.h" /></div>
         </div>
-        <p class="setting-note">Settings are saved in this browser only. Changing the expected sample interval affects the estimated data coverage and gap analysis; it does not change how often the ESP32 transmits. The dashboard cannot distinguish a power cut from Wi-Fi loss without additional hardware or backend status data.</p>
+        <p class="setting-note">Browser analysis preferences are local. The private token is stored in this browser only and unlocks health records, command status and OLED settings. Do not publish this dashboard URL with a token embedded in it.</p>
         <div class="modal-actions"><button class="btn" id="resetSettings">Restore defaults</button><button class="btn primary" id="saveSettings">Save settings</button></div>
       </div>
     </div>
@@ -563,6 +597,13 @@
     let toastTimer = null;
     let lastNotificationKeys = new Set();
     let apiError = '';
+    let privateDashboardData = null;
+    let privateApiError = '';
+    let healthHeartChart = null;
+    let healthSpo2Chart = null;
+    let privateRefreshBusy = false;
+    let apiToken = '';
+    try { apiToken = localStorage.getItem('smartHomePrivateApiToken') || ''; } catch (_) {}
 
     const $ = (id) => document.getElementById(id);
     const fmt = (value, decimals=1) => value === null || value === undefined || !Number.isFinite(Number(value)) ? '—' : Number(value).toFixed(decimals);
@@ -653,6 +694,126 @@
       return {dataPoints,gaps};
     }
 
+    function currentHealthRows() {
+      const rows = privateDashboardData?.healthReadings || [];
+      const filter = $('healthPersonFilter')?.value || 'ALL';
+      return rows.filter(row => filter === 'ALL' || String(row.Person || '').toUpperCase() === filter);
+    }
+    function applyDeviceSettings() {
+      const cfg = privateDashboardData?.settings || {};
+      const intervalMs = Number(cfg.telemetryIntervalMs);
+      if (Number.isFinite(intervalMs) && intervalMs >= 15000 && intervalMs <= 3600000) {
+        const syncedSeconds = Math.round(intervalMs / 1000);
+        if (settings.refreshSeconds !== syncedSeconds) {
+          settings.refreshSeconds = syncedSeconds;
+          settings.sampleMinutes = Math.max(1, Math.round(syncedSeconds / 60));
+          saveSettingsLocal();
+          scheduleRefresh();
+        }
+      }
+      const roomA = String(cfg.roomAHT10 || 'Bedroom');
+      const roomB = String(cfg.roomDHT22 || 'Living Room');
+      const roomC = String(cfg.roomDHT11 || 'Outdoor');
+      const roomD = String(cfg.roomDS18B20 || 'Core Device');
+      const names = [
+        ['aht10', roomA + ' · AHT10'], ['dht22', roomB + ' · DHT22'],
+        ['dht11', roomC + ' · DHT11'], ['ds', roomD + ' · DS18B20']
+      ];
+      names.forEach(([key,label]) => {
+        const el = document.querySelector(`[data-sensor="${key}"] .sensor-name`);
+        if (el) el.textContent = label;
+      });
+      const roomTitles = document.querySelectorAll('#roomMonitoring .room-title');
+      if (roomTitles[0]) roomTitles[0].textContent = roomA + ' · AHT10';
+      if (roomTitles[1]) roomTitles[1].textContent = roomB + ' · DHT22';
+      if (roomTitles[2]) roomTitles[2].textContent = roomD + ' · DS18B20';
+      renderDeviceConfig();
+    }
+    function renderDeviceConfig() {
+      const cfg = privateDashboardData?.settings || {};
+      const host = $('deviceConfigList');
+      if (!host) return;
+      const entries = [
+        ['Telemetry interval', cfg.telemetryIntervalMs ? `${Math.round(Number(cfg.telemetryIntervalMs)/1000)} seconds` : 'Not synced'],
+        ['Matrix mode', cfg.matrixMode || 'Not synced'],
+        ['Matrix show', cfg.matrixEffect ? `Preset ${cfg.matrixEffect} of 52` : 'Not synced'],
+        ['Matrix brightness', cfg.matrixBrightness ?? 'Not synced'],
+        ['Time format', cfg.clock24Hour === true || cfg.clock24Hour === 'true' ? '24-hour' : (cfg.clock24Hour === false || cfg.clock24Hour === 'false' ? '12-hour' : 'Not synced')],
+        ['Night palette', cfg.matrixNightPalette ?? 'Not synced'],
+        ['Presence sleep', cfg.presenceSleepEnabled === true || cfg.presenceSleepEnabled === 'true' ? 'Enabled' : (cfg.presenceSleepEnabled === false || cfg.presenceSleepEnabled === 'false' ? 'Disabled' : 'Not synced')],
+        ['Room assignments', [cfg.roomAHT10,cfg.roomDHT22,cfg.roomDHT11,cfg.roomDS18B20].filter(Boolean).join(' / ') || 'Not synced']
+      ];
+      host.innerHTML = entries.map(([k,v]) => `<div class="alert-item"><div class="alert-mark">◈</div><div><div class="alert-title">${safeText(k)}</div><div class="alert-detail">${safeText(v)}</div></div></div>`).join('');
+    }
+    function renderCloudQueues() {
+      const commands = (privateDashboardData?.irCommandQueue || []).slice().reverse().slice(0,30);
+      const messages = (privateDashboardData?.displayMessages || []).slice().reverse().slice(0,30);
+      $('irCommandQueueBody').innerHTML = commands.map(r => `<tr><td class="mono">${safeText(r.ID)}</td><td>${safeText(new Date(r['Created At']).toLocaleTimeString())}</td><td>${safeText(r.Command)}</td><td>${safeText(r.Status)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">No queued fan commands.</td></tr>';
+      $('displayMessageQueueBody').innerHTML = messages.map(r => `<tr><td class="mono">${safeText(r.ID)}</td><td>${safeText(new Date(r['Created At']).toLocaleTimeString())}</td><td>${safeText(r.Message)}</td><td>${safeText(r.Status)}</td></tr>`).join('') || '<tr><td colspan="4" class="muted">No matrix messages.</td></tr>';
+    }
+    function renderHealthRecords() {
+      const allRows = privateDashboardData?.healthReadings || [];
+      const select = $('healthPersonFilter');
+      const prior = select.value || 'ALL';
+      const names = [...new Set(allRows.map(r => String(r.Person || '').trim().toUpperCase()).filter(Boolean))].sort();
+      select.innerHTML = '<option value="ALL">All profiles</option>' + names.map(n => `<option value="${safeText(n)}">${safeText(n)}</option>`).join('');
+      select.value = names.includes(prior) ? prior : 'ALL';
+      const rows = currentHealthRows().slice().sort((a,b) => new Date(b.Timestamp)-new Date(a.Timestamp));
+      const latest = rows[0];
+      $('healthRecordCount').textContent = String(rows.length);
+      $('healthRecordNote').textContent = `${names.length} profile(s) · latest ${latest ? new Date(latest.Timestamp).toLocaleString() : 'no readings'}`;
+      const bpm = latest && Number.isFinite(Number(latest['Heart Rate BPM'])) ? Number(latest['Heart Rate BPM']) : null;
+      const spo2 = latest && Number.isFinite(Number(latest['SpO2 %'])) ? Number(latest['SpO2 %']) : null;
+      $('latestBpm').textContent = bpm === null ? '—' : `${bpm.toFixed(1)} BPM`;
+      $('latestSpo2').textContent = spo2 === null ? '—' : `${spo2.toFixed(1)}%`;
+      $('latestBpmNote').textContent = latest ? `${safeText(latest.Person)} · ${new Date(latest.Timestamp).toLocaleString()}` : 'No profile selected';
+      $('latestSpo2Note').textContent = latest ? `${safeText(latest.Person)} · MAX30102 estimate` : 'No profile selected';
+      $('healthRecordsBody').innerHTML = rows.slice(0,250).map(r => `<tr><td class="mono">${safeText(new Date(r.Timestamp).toLocaleString())}</td><td>${safeText(r.Person)}</td><td class="mono">${fmt(r['Heart Rate BPM'],1)}</td><td class="mono">${fmt(r['SpO2 %'],1)}</td><td>${safeText([r.Device,r.Note].filter(Boolean).join(' · '))}</td></tr>`).join('') || '<tr><td colspan="5" class="muted">No saved measurements for this filter.</td></tr>';
+      drawHealthCharts(rows.slice().reverse());
+      renderCloudQueues();
+      const state = $('privateApiState');
+      state.textContent = privateApiError ? 'PRIVATE API ERROR' : (privateDashboardData ? 'PRIVATE API CONNECTED' : 'CLOUD LINK LOCKED');
+      state.className = privateDashboardData && !privateApiError ? 'health-tag' : 'health-tag warn';
+    }
+    function drawHealthCharts(rows) {
+      if (typeof Chart === 'undefined') return;
+      const make = (canvasId, existing, key, label, color, suffix) => {
+        const valid = rows.filter(r => Number.isFinite(Number(r[key])));
+        const config = {type:'line',data:{labels:valid.map(r=>new Date(r.Timestamp).toLocaleString()),datasets:[{label,data:valid.map(r=>Number(r[key])),borderColor:color,backgroundColor:color+'22',fill:true,tension:.25,pointRadius:2,spanGaps:false}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{labels:{color:'#a8bad0'}},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${c.parsed.y}${suffix}`}}},scales:{x:{ticks:{color:'#7890aa',maxTicksLimit:6},grid:{color:'rgba(150,180,210,.08)'}},y:{ticks:{color:'#7890aa'},grid:{color:'rgba(150,180,210,.08)'}}}}};
+        if (existing) existing.destroy();
+        return new Chart($(canvasId).getContext('2d'),config);
+      };
+      try {
+        healthHeartChart = make('healthHeartChart',healthHeartChart,'Heart Rate BPM','Heart rate','#5bd7ef',' BPM');
+        healthSpo2Chart = make('healthSpo2Chart',healthSpo2Chart,'SpO2 %','SpO₂','#66e0ad','%');
+      } catch (error) { console.warn('Health charts unavailable:',error); }
+    }
+    async function fetchPrivateDashboard(showToastOnSuccess=false) {
+      if (!apiToken) {
+        privateApiError = 'No private API token configured';
+        privateDashboardData = null;
+        renderHealthRecords();
+        return;
+      }
+      if (privateRefreshBusy) return;
+      privateRefreshBusy = true;
+      try {
+        const url = `${API_URL}?action=dashboard&token=${encodeURIComponent(apiToken)}&t=${Date.now()}`;
+        const response = await fetch(url,{method:'GET',cache:'no-store',headers:{'Accept':'application/json'}});
+        const payload = await response.json();
+        if (!response.ok || !payload.ok) throw new Error(payload.error || `HTTP ${response.status}`);
+        privateDashboardData = payload;
+        privateApiError = '';
+        applyDeviceSettings();
+        renderHealthRecords();
+        if (showToastOnSuccess) showToast('Private health and device settings synced.');
+      } catch (error) {
+        privateApiError = error.message || 'Private API request failed';
+        renderHealthRecords();
+        if (showToastOnSuccess) showToast(`Private data unavailable: ${privateApiError}`);
+      } finally { privateRefreshBusy = false; }
+    }
+
     async function fetchSensorData(manual=false) {
       const refreshBtn=$('refreshBtn'), glyph=$('refreshGlyph');
       refreshBtn.disabled=true; glyph.innerHTML='<span class="loader"></span>';
@@ -666,7 +827,8 @@
         allPoints=parsed.dataPoints; explicitGaps=parsed.gaps; lastSuccessfulFetch=new Date(); apiError='';
         applyFilterAndUpdate();
         setConnectionFromTelemetry();
-        $('footerStatus').textContent=`API: synced ${lastSuccessfulFetch.toLocaleTimeString()} · ${allPoints.length.toLocaleString()} parsed packets · local settings only`;
+        await fetchPrivateDashboard(false);
+        $('footerStatus').textContent=`API: synced ${lastSuccessfulFetch.toLocaleTimeString()} · ${allPoints.length.toLocaleString()} parsed packets · refresh ${settings.refreshSeconds}s`;
         if (manual) showToast(`Sync complete · ${allPoints.length.toLocaleString()} telemetry records`);
       } catch (error) {
         apiError=error.name==='AbortError' ? 'Request timed out after 20 seconds' : error.message;
@@ -1100,7 +1262,7 @@
       applyFilterAndUpdate();
     }
     function openSettings() {
-      $('coreLimit').value=settings.coreLimit; $('indoorTempMax').value=settings.indoorTempMax; $('indoorHumMin').value=settings.indoorHumMin; $('indoorHumMax').value=settings.indoorHumMax; $('staleMinutes').value=settings.staleMinutes; $('offlineMinutes').value=settings.offlineMinutes; $('sampleMinutes').value=settings.sampleMinutes; $('refreshSeconds').value=settings.refreshSeconds; $('gapMinutes').value=settings.gapMinutes;
+      $('coreLimit').value=settings.coreLimit; $('indoorTempMax').value=settings.indoorTempMax; $('indoorHumMin').value=settings.indoorHumMin; $('indoorHumMax').value=settings.indoorHumMax; $('staleMinutes').value=settings.staleMinutes; $('offlineMinutes').value=settings.offlineMinutes; $('sampleMinutes').value=settings.sampleMinutes; $('refreshSeconds').value=settings.refreshSeconds; $('gapMinutes').value=settings.gapMinutes; $('cloudApiToken').value=apiToken;
       $('settingsModal').classList.add('open');
     }
     function closeSettings() { $('settingsModal').classList.remove('open'); }
@@ -1124,10 +1286,12 @@
     document.querySelectorAll('.sensor-card').forEach(card=>card.addEventListener('click',()=>{selectedSensor=card.dataset.sensor;$('chartSensor').value=selectedSensor;renderSensorCards();renderExplorer();navigateTo('analytics');}));
     $('chartSensor').addEventListener('change',e=>{selectedSensor=e.target.value;renderSensorCards();renderExplorer();});
     $('refreshBtn').addEventListener('click',()=>fetchSensorData(true));
+    $('privateRefreshBtn').addEventListener('click',()=>fetchPrivateDashboard(true));
+    $('healthPersonFilter').addEventListener('change',renderHealthRecords);
     $('exportBtn').addEventListener('click',exportCSV); $('exportLogBtn').addEventListener('click',exportCSV); $('exportEventsBtn').addEventListener('click',exportEvents);
     $('settingsBtn').addEventListener('click',openSettings); $('sideSettings').addEventListener('click',openSettings); $('closeSettings').addEventListener('click',closeSettings);
     $('settingsModal').addEventListener('click',e=>{if(e.target===$('settingsModal'))closeSettings();});
-    $('saveSettings').addEventListener('click',()=>{try{settings=readAndValidateSettings();saveSettingsLocal();scheduleRefresh();closeSettings();applyFilterAndUpdate();showToast('Settings saved on this browser');}catch(error){showToast(error.message);}});
+    $('saveSettings').addEventListener('click',()=>{try{settings=readAndValidateSettings();apiToken=$('cloudApiToken').value.trim();if(apiToken && !/^[a-f0-9]{64}$/i.test(apiToken)) throw new Error('The private API token must be exactly 64 hexadecimal characters.');try{localStorage.setItem('smartHomePrivateApiToken',apiToken);}catch(_){}saveSettingsLocal();scheduleRefresh();closeSettings();applyFilterAndUpdate();fetchPrivateDashboard(true);showToast('Browser settings saved');}catch(error){showToast(error.message);}});
     $('resetSettings').addEventListener('click',()=>{settings={...DEFAULT_SETTINGS};saveSettingsLocal();openSettings();scheduleRefresh();showToast('Default settings restored');});
     $('applyCustom').addEventListener('click',()=>{const start=$('fromDate').value,end=$('toDate').value;if(!start||!end){showToast('Choose both start and end dates.');return;}if(start>end){showToast('Start date must be before end date.');return;}customRange={start,end};currentRange='custom';document.querySelectorAll('.filter-btn[data-range]').forEach(b=>b.classList.remove('active'));applyFilterAndUpdate();showToast('Custom date range applied');});
     $('resetZoomBtn').addEventListener('click',()=>{if(chartInstance&&typeof chartInstance.resetZoom==='function')chartInstance.resetZoom();else showToast('Chart zoom is not available.');});
@@ -1137,7 +1301,7 @@
     document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSettings();if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='r'){e.preventDefault();fetchSensorData(true);}});
 
     // Start application.
-    setClock(); setInterval(setClock,1000); scheduleRefresh(); fetchSensorData(false);
+    setClock(); setInterval(setClock,1000); scheduleRefresh(); fetchSensorData(false); renderHealthRecords();
     setInterval(()=>{setConnectionFromTelemetry();if(allPoints.length){renderSummary();renderAlerts();}},30000);
   </script>
 </body>
