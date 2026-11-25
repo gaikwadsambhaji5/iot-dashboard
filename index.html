@@ -6,8 +6,10 @@
   <meta name="theme-color" content="#080e19" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Smart Home" />
   <meta name="format-detection" content="telephone=no" />
   <title>Smart Home</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='22' fill='%235bd7ef'/%3E%3Ctext x='50' y='66' font-size='42' font-weight='800' text-anchor='middle' fill='%2306121c' font-family='system-ui'%3ESH%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -18,7 +20,6 @@
     :root {
       color-scheme: dark;
       --bg: #070d16;
-      --bg-2: #0c1420;
       --card: #111c2b;
       --card-2: #16243a;
       --card-3: #1c2e48;
@@ -36,20 +37,16 @@
       --violet: #b5a0ff;
       --pink: #ed82c1;
       --yellow: #f1df75;
-      --radius-xl: 26px;
-      --radius-lg: 20px;
-      --radius-md: 14px;
-      --radius-sm: 10px;
-      --safe-top: env(safe-area-inset-top, 0px);
-      --safe-bottom: env(safe-area-inset-bottom, 0px);
       --spring: cubic-bezier(.32,.72,0,1);
       --ease: cubic-bezier(.25,.1,.25,1);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
     }
     *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
     html, body { margin: 0; padding: 0; }
     html { background: var(--bg); }
     body {
-      font-family: -apple-system, 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: -apple-system, 'Inter', system-ui, BlinkMacSystemFont, sans-serif;
       background:
         radial-gradient(ellipse 90% 40% at 50% -5%, rgba(91,215,239,.10), transparent 55%),
         radial-gradient(ellipse 70% 50% at 100% 100%, rgba(181,160,255,.05), transparent 60%),
@@ -66,11 +63,11 @@
     .mono { font-family: 'DM Mono', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
     button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; touch-action: manipulation; }
 
-    /* ── App header ───────────────────────────────────────────────── */
+    /* ── Header ── */
     .app-header {
       position: sticky; top: 0; z-index: 50;
-      padding: calc(var(--safe-top) + 6px) 16px 10px;
-      display: flex; align-items: center; gap: 10px;
+      padding: calc(var(--safe-top) + 6px) 14px 10px;
+      display: flex; align-items: center; gap: 8px;
       background: rgba(7,13,22,.78);
       backdrop-filter: blur(26px) saturate(180%);
       -webkit-backdrop-filter: blur(26px) saturate(180%);
@@ -94,26 +91,47 @@
     .live-dot.warn { background: var(--amber); box-shadow: 0 0 0 3px rgba(247,190,106,.15); }
     .live-dot.off { background: var(--red); box-shadow: 0 0 0 3px rgba(255,114,128,.15); }
     @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .5; } }
+
+    .icon-btn {
+      position: relative; width: 36px; height: 36px; border-radius: 50%; flex: none;
+      display: grid; place-items: center;
+      background: var(--card-2); border: 1px solid var(--border);
+      color: var(--text-2);
+      transition: transform .15s var(--spring), background .15s, color .15s;
+    }
+    .icon-btn:active { transform: scale(.9); background: var(--card-3); }
+    .icon-btn.on { color: var(--cyan); border-color: rgba(91,215,239,.28); }
+    .icon-btn .badge {
+      position: absolute; top: 2px; right: 2px; width: 8px; height: 8px;
+      border-radius: 50%; background: var(--red);
+      box-shadow: 0 0 8px rgba(255,114,128,.6);
+      display: none;
+    }
+    .icon-btn .badge.show { display: block; }
+    .icon-btn svg { width: 18px; height: 18px; }
+
     .range-chip {
       display: inline-flex; align-items: center; gap: 4px;
       padding: 7px 11px; border-radius: 100px;
       background: var(--card-2); border: 1px solid var(--border);
       font-size: 11px; font-weight: 600; color: var(--text-2);
-      transition: background .15s, transform .12s;
+      transition: background .15s, transform .12s var(--spring);
+      white-space: nowrap;
     }
-    .range-chip:active { transform: scale(.96); background: var(--card-3); }
+    .range-chip:active { transform: scale(.94); background: var(--card-3); }
     .refresh-btn {
       width: 36px; height: 36px; border-radius: 50%; flex: none;
       display: grid; place-items: center;
       background: var(--card-2); border: 1px solid var(--border);
-      color: var(--text-2); font-size: 15px;
-      transition: transform .15s, background .15s;
+      color: var(--text-2);
+      transition: transform .15s var(--spring), background .15s;
     }
-    .refresh-btn:active { transform: scale(.92); background: var(--card-3); }
+    .refresh-btn:active { transform: scale(.9); background: var(--card-3); }
+    .refresh-btn svg { width: 16px; height: 16px; }
     .refresh-btn.spinning svg { animation: spin 1s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
 
-    /* ── Screens ──────────────────────────────────────────────────── */
+    /* ── Screens ── */
     .screen { display: none; padding: 16px 16px 24px; }
     .screen.active { display: block; animation: screenIn .42s var(--spring); }
     @keyframes screenIn {
@@ -129,10 +147,10 @@
     .section-meta { font-size: 11px; color: var(--muted); }
     .section-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-    /* ── Hero card ────────────────────────────────────────────────── */
+    /* ── Hero ── */
     .hero {
       position: relative; overflow: hidden;
-      border-radius: var(--radius-xl); padding: 20px;
+      border-radius: 26px; padding: 20px;
       background:
         radial-gradient(circle at 100% 0%, rgba(91,215,239,.16), transparent 55%),
         linear-gradient(160deg, #142238 0%, #0f1a2c 100%);
@@ -160,37 +178,37 @@
     .comfort-ring-sub { font-size: 8px; letter-spacing: .1em; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
     .hero-metrics {
       display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px;
-      background: var(--border); border-radius: var(--radius-md); overflow: hidden;
-      margin-top: 4px;
+      background: var(--border); border-radius: 14px; overflow: hidden; margin-top: 4px;
     }
-    .hero-metric { background: rgba(255,255,255,.015); padding: 10px 8px; text-align: center; }
+    .hero-metric { background: rgba(255,255,255,.015); padding: 10px 6px; text-align: center; }
     .hero-metric-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; margin-bottom: 5px; }
-    .hero-metric-value { font: 500 15px 'DM Mono', monospace; letter-spacing: -.02em; color: var(--text); }
-    .hero-metric-delta { font-size: 9px; color: var(--dim); margin-top: 2px; }
+    .hero-metric-value { font: 500 14px 'DM Mono', monospace; letter-spacing: -.02em; color: var(--text); }
+    .hero-metric-delta { font-size: 9px; color: var(--dim); margin-top: 2px; min-height: 11px; }
     .hero-metric-delta.up { color: var(--red); }
     .hero-metric-delta.down { color: var(--blue); }
 
-    /* ── Quick grid (2×2) ─────────────────────────────────────────── */
+    /* ── Quick grid ── */
     .quick-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
     .quick-card {
       background: var(--card); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 13px 14px; min-width: 0;
-      transition: transform .16s var(--ease), background .16s, border-color .16s;
+      border-radius: 20px; padding: 14px 15px; min-width: 0;
+      transition: transform .16s var(--spring), background .16s, border-color .16s;
+      text-align: left;
     }
-    .quick-card:active { transform: scale(.97); background: var(--card-2); }
+    .quick-card:active { transform: scale(.96); background: var(--card-2); }
     .quick-card-head { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
-    .quick-card-name { font-size: 11px; font-weight: 700; color: var(--text-2); letter-spacing: .01em; }
-    .quick-card-icon { font-size: 13px; opacity: .6; }
-    .quick-card-value { font: 500 24px 'DM Mono', monospace; letter-spacing: -.04em; margin-top: 9px; line-height: 1; }
+    .quick-card-name { font-size: 11px; font-weight: 700; color: var(--text-2); }
+    .quick-card-icon { width: 26px; height: 26px; display: grid; place-items: center; font-size: 15px; }
+    .quick-card-value { font: 500 25px 'DM Mono', monospace; letter-spacing: -.04em; margin-top: 9px; line-height: 1; }
     .quick-card-unit { font: 500 11px 'DM Mono', monospace; color: var(--muted); margin-left: 1px; letter-spacing: 0; }
     .quick-card-sub { font-size: 10px; color: var(--muted); margin-top: 5px; }
     .quick-card-spark { height: 26px; margin-top: 8px; }
 
-    /* ── Insight card ─────────────────────────────────────────────── */
+    /* ── Insights ── */
     .insights { display: flex; flex-direction: column; gap: 8px; }
     .insight {
       display: flex; gap: 11px; align-items: flex-start;
-      padding: 12px 14px; border-radius: var(--radius-md);
+      padding: 13px 15px; border-radius: 16px;
       background: var(--card); border: 1px solid var(--border);
       animation: fadeIn .5s var(--spring) backwards;
     }
@@ -198,10 +216,11 @@
     .insight:nth-child(2) { animation-delay: .10s; }
     .insight:nth-child(3) { animation-delay: .16s; }
     .insight:nth-child(4) { animation-delay: .22s; }
+    .insight:nth-child(5) { animation-delay: .28s; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
     .insight-icon {
-      width: 30px; height: 30px; flex: none; border-radius: 9px;
-      display: grid; place-items: center; font-size: 13px;
+      width: 32px; height: 32px; flex: none; border-radius: 10px;
+      display: grid; place-items: center; font-size: 15px;
       background: rgba(91,215,239,.10); color: var(--cyan);
     }
     .insight-icon.good { background: rgba(94,224,168,.10); color: var(--green); }
@@ -212,11 +231,11 @@
     .insight-title { font-size: 12px; font-weight: 700; }
     .insight-detail { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
 
-    /* ── Alerts / relay chips ─────────────────────────────────────── */
+    /* ── Alerts ── */
     .alert-list { display: flex; flex-direction: column; gap: 8px; }
     .alert {
       display: flex; gap: 11px; align-items: flex-start;
-      padding: 12px 14px; border-radius: var(--radius-md);
+      padding: 12px 14px; border-radius: 16px;
       background: var(--card); border: 1px solid var(--border);
     }
     .alert.critical { border-color: rgba(255,114,128,.28); background: linear-gradient(180deg, rgba(255,114,128,.06), var(--card)); }
@@ -229,38 +248,37 @@
     .alert-title { font-size: 12px; font-weight: 700; }
     .alert-detail { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.45; }
 
+    /* ── Relay chips ── */
     .relay-row { display: flex; gap: 8px; overflow-x: auto; padding: 2px 4px 2px 0; scrollbar-width: none; }
     .relay-row::-webkit-scrollbar { display: none; }
     .relay-chip {
       flex: none; display: inline-flex; align-items: center; gap: 7px;
-      padding: 9px 13px; border-radius: 100px;
+      padding: 10px 14px; border-radius: 100px;
       background: var(--card); border: 1px solid var(--border);
       font-size: 12px; font-weight: 600; color: var(--text-2);
       white-space: nowrap;
     }
-    .relay-chip .dot {
-      width: 7px; height: 7px; border-radius: 50%; background: var(--dim);
-    }
-    .relay-chip.on   { border-color: rgba(94,224,168,.28); color: var(--green); }
+    .relay-chip .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); }
+    .relay-chip.on { border-color: rgba(94,224,168,.28); color: var(--green); }
     .relay-chip.on .dot { background: var(--green); box-shadow: 0 0 8px rgba(94,224,168,.5); }
-    .relay-chip.off  { color: var(--muted); }
+    .relay-chip.off { color: var(--muted); }
     .relay-chip.rain { border-color: rgba(91,215,239,.28); color: var(--cyan); }
     .relay-chip.rain .dot { background: var(--cyan); }
 
-    /* ── Sensor cards (Sensors screen) ────────────────────────────── */
+    /* ── Sensor list ── */
     .sensor-list { display: flex; flex-direction: column; gap: 10px; }
     .sensor-card {
       width: 100%; text-align: left;
       background: var(--card); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 14px;
+      border-radius: 20px; padding: 15px;
       display: grid; grid-template-columns: 1fr auto; gap: 12px; align-items: center;
-      transition: transform .16s var(--ease), background .16s, border-color .16s;
+      transition: transform .16s var(--spring), background .16s, border-color .16s;
     }
-    .sensor-card:active { transform: scale(.98); background: var(--card-2); }
+    .sensor-card:active { transform: scale(.97); background: var(--card-2); }
     .sensor-card.selected { border-color: rgba(91,215,239,.35); background: linear-gradient(180deg, rgba(91,215,239,.05), var(--card)); }
     .sensor-left { min-width: 0; }
     .sensor-head { display: flex; align-items: center; gap: 7px; margin-bottom: 8px; }
-    .sensor-name { font-size: 12px; font-weight: 700; color: var(--text-2); letter-spacing: .01em; }
+    .sensor-name { font-size: 12px; font-weight: 700; color: var(--text-2); }
     .sensor-dot { width: 6px; height: 6px; border-radius: 50%; flex: none; }
     .sensor-dot.on { background: var(--green); box-shadow: 0 0 6px rgba(94,224,168,.55); }
     .sensor-dot.warn { background: var(--amber); }
@@ -272,34 +290,31 @@
     .sensor-spark { width: 90px; height: 32px; }
     .sensor-range { font-size: 9.5px; color: var(--dim); margin-top: 5px; font-family: 'DM Mono', monospace; }
 
-    /* ── Rooms ────────────────────────────────────────────────────── */
+    /* ── Rooms ── */
     .room-cards { display: flex; flex-direction: column; gap: 12px; }
     .room-card {
       background: var(--card); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 15px;
-      transition: transform .16s var(--ease);
+      border-radius: 20px; padding: 15px;
+      transition: transform .16s var(--spring);
     }
-    .room-card:active { transform: scale(.98); }
+    .room-card:active { transform: scale(.97); }
     .room-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 13px; }
     .room-card-name { font-size: 13px; font-weight: 700; }
     .room-card-sub { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
     .room-readings { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
     .room-reading {
       background: rgba(255,255,255,.02); border: 1px solid var(--border);
-      border-radius: var(--radius-md); padding: 11px 12px;
+      border-radius: 14px; padding: 11px 12px;
     }
     .room-reading-label { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; font-weight: 700; }
     .room-reading-value { font: 500 22px 'DM Mono', monospace; letter-spacing: -.04em; margin-top: 5px; line-height: 1; }
     .room-reading-unit { font: 500 11px 'DM Mono', monospace; color: var(--muted); letter-spacing: 0; }
     .room-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
-    .room-kpi {
-      padding: 9px 10px; border-radius: 10px;
-      background: rgba(255,255,255,.015); border: 1px solid var(--border);
-    }
+    .room-kpi { padding: 9px 10px; border-radius: 10px; background: rgba(255,255,255,.015); border: 1px solid var(--border); }
     .room-kpi-label { font-size: 8.5px; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
     .room-kpi-value { font: 500 13px 'DM Mono', monospace; margin-top: 4px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    /* ── Charts ───────────────────────────────────────────────────── */
+    /* ── Chart panel ── */
     .segmented {
       display: flex; padding: 3px; gap: 2px; border-radius: 12px;
       background: var(--card); border: 1px solid var(--border);
@@ -307,16 +322,17 @@
     }
     .segmented::-webkit-scrollbar { display: none; }
     .segmented button {
-      flex: none; padding: 7px 12px; border-radius: 9px;
-      font-size: 11.5px; font-weight: 600; color: var(--muted);
-      transition: background .2s, color .2s, transform .12s;
+      flex: none; padding: 8px 13px; border-radius: 9px;
+      font-size: 12px; font-weight: 600; color: var(--muted);
+      transition: background .2s, color .2s, transform .12s var(--spring);
       white-space: nowrap;
     }
     .segmented button.active { background: var(--card-3); color: var(--text); }
     .segmented button:active { transform: scale(.94); }
+
     .chart-panel {
       background: var(--card); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 15px; margin-top: 12px;
+      border-radius: 20px; padding: 15px; margin-top: 12px;
     }
     .chart-toolbar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
     .select {
@@ -328,23 +344,106 @@
       background-repeat: no-repeat; background-position: right 12px center;
       padding-right: 32px;
     }
+    .zoom-pill {
+      display: inline-flex; gap: 2px; padding: 3px;
+      background: var(--card-2); border: 1px solid var(--border); border-radius: 12px;
+    }
+    .zoom-pill button {
+      width: 34px; height: 34px; border-radius: 9px;
+      display: grid; place-items: center;
+      color: var(--text-2); font-weight: 700; font-size: 14px;
+      transition: background .15s, transform .12s var(--spring), color .15s;
+    }
+    .zoom-pill button:active { transform: scale(.88); background: var(--card-3); }
+    .zoom-pill button.fit { width: auto; padding: 0 11px; font-size: 11px; font-weight: 700; }
+
     .chart-container { position: relative; height: 300px; margin-top: 4px; }
     .chart-legend { font-size: 10px; color: var(--dim); margin-top: 10px; line-height: 1.5; text-align: center; }
+
+    /* ── Navigator slider ── */
+    .navigator {
+      position: relative; height: 46px; margin-top: 12px;
+      background: var(--card-2); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      touch-action: none;
+    }
+    .nav-spark {
+      position: absolute; inset: 0; width: 100%; height: 100%;
+      pointer-events: none;
+    }
+    .nav-window {
+      position: absolute; top: 0; bottom: 0;
+      background: linear-gradient(180deg, rgba(91,215,239,.16), rgba(91,215,239,.08));
+      border: 1.5px solid rgba(91,215,239,.55);
+      border-radius: 8px;
+      box-shadow: 0 0 0 1px rgba(91,215,239,.15), inset 0 0 12px rgba(91,215,239,.15);
+      pointer-events: none;
+      min-width: 16px;
+      transition: left .04s linear, width .04s linear;
+    }
+    .nav-window::before, .nav-window::after {
+      content: ''; position: absolute; top: 50%;
+      width: 4px; height: 22px; margin-top: -11px;
+      background: var(--cyan); border-radius: 2px;
+      box-shadow: 0 0 6px rgba(91,215,239,.6);
+    }
+    .nav-window::before { left: -2px; }
+    .nav-window::after  { right: -2px; }
+    .nav-hint {
+      text-align: center; font-size: 10px; color: var(--dim);
+      margin-top: 8px; letter-spacing: .02em;
+    }
+
     .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-top: 12px; }
-    .stat-box { background: var(--card-2); border: 1px solid var(--border); border-radius: 10px; padding: 9px 8px; text-align: center; }
+    .stat-box { background: var(--card-2); border: 1px solid var(--border); border-radius: 10px; padding: 9px 6px; text-align: center; }
     .stat-box-label { font-size: 8.5px; color: var(--dim); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; }
     .stat-box-value { font: 500 13px 'DM Mono', monospace; margin-top: 4px; }
 
-    /* ── Events list ──────────────────────────────────────────────── */
+    /* ── Presence view ── */
+    .presence-view {
+      display: flex; flex-direction: column; gap: 14px;
+      padding: 8px 0;
+    }
+    .presence-gauge-wrap {
+      display: flex; justify-content: center;
+      padding: 4px 0;
+    }
+    .presence-svg { width: 260px; height: 260px; max-width: 100%; }
+    .presence-stats { text-align: center; }
+    .presence-distance {
+      font: 500 44px 'DM Mono', monospace;
+      letter-spacing: -.05em; line-height: 1;
+      color: var(--amber);
+      transition: color .3s, transform .3s var(--spring);
+    }
+    .presence-status {
+      font-size: 12px; font-weight: 600; color: var(--green);
+      margin-top: 6px;
+    }
+    .presence-history {
+      padding-top: 10px; border-top: 1px solid var(--border);
+    }
+
+    #presencePulse {
+      transform-box: fill-box;
+      transform-origin: center;
+      animation: presencePulse 1.8s ease-out infinite;
+    }
+    @keyframes presencePulse {
+      0%   { transform: scale(0.8); opacity: .55; }
+      100% { transform: scale(2.6); opacity: 0; }
+    }
+
+    /* ── Events ── */
     .event-list { display: flex; flex-direction: column; gap: 8px; }
     .event {
       display: flex; gap: 11px; align-items: flex-start;
-      padding: 11px 13px; border-radius: var(--radius-md);
+      padding: 12px 14px; border-radius: 16px;
       background: var(--card); border: 1px solid var(--border);
     }
     .event-icon {
-      width: 28px; height: 28px; flex: none; border-radius: 8px;
-      display: grid; place-items: center; font-size: 12px;
+      width: 30px; height: 30px; flex: none; border-radius: 9px;
+      display: grid; place-items: center; font-size: 13px;
       background: rgba(94,224,168,.10); color: var(--green);
     }
     .event-icon.warn { background: rgba(247,190,106,.10); color: var(--amber); }
@@ -355,11 +454,11 @@
     .event-detail { font-size: 10.5px; color: var(--muted); margin-top: 3px; line-height: 1.45; font-family: 'DM Mono', monospace; }
     .empty-state {
       padding: 28px 16px; text-align: center; font-size: 12px; color: var(--dim);
-      border: 1px dashed var(--border-strong); border-radius: var(--radius-md);
+      border: 1px dashed var(--border-strong); border-radius: 14px;
     }
 
-    /* ── Table ────────────────────────────────────────────────────── */
-    .table-wrap { overflow: auto; border-radius: var(--radius-md); border: 1px solid var(--border); max-height: 460px; -webkit-overflow-scrolling: touch; }
+    /* ── Tables ── */
+    .table-wrap { overflow: auto; border-radius: 14px; border: 1px solid var(--border); max-height: 460px; -webkit-overflow-scrolling: touch; }
     table { width: 100%; border-collapse: collapse; font-size: 11px; }
     th {
       position: sticky; top: 0; z-index: 2;
@@ -373,8 +472,8 @@
     .relay-on { color: var(--green); font-weight: 700; }
     .relay-off { color: var(--muted); }
 
-    /* ── More screen rows ─────────────────────────────────────────── */
-    .more-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border-radius: var(--radius-lg); overflow: hidden; }
+    /* ── More list ── */
+    .more-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); border-radius: 20px; overflow: hidden; }
     .more-item {
       display: flex; align-items: center; gap: 13px;
       padding: 15px 16px; background: var(--card);
@@ -382,8 +481,8 @@
     }
     .more-item:active { background: var(--card-2); }
     .more-icon {
-      width: 32px; height: 32px; border-radius: 9px; flex: none;
-      display: grid; place-items: center; font-size: 14px;
+      width: 38px; height: 38px; border-radius: 11px; flex: none;
+      display: grid; place-items: center; font-size: 17px;
       background: rgba(91,215,239,.10); color: var(--cyan);
     }
     .more-icon.violet { background: rgba(181,160,255,.10); color: var(--violet); }
@@ -393,9 +492,9 @@
     .more-text { flex: 1; min-width: 0; }
     .more-title { font-size: 13px; font-weight: 600; }
     .more-sub { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
-    .more-chev { color: var(--dim); font-size: 14px; flex: none; }
+    .more-chev { color: var(--dim); font-size: 15px; flex: none; }
 
-    /* ── Tab bar ──────────────────────────────────────────────────── */
+    /* ── Tab bar ── */
     .tab-bar {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 40;
       padding: 8px 8px calc(var(--safe-bottom) + 8px);
@@ -409,14 +508,14 @@
       flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 3px; padding: 8px 4px; border-radius: 12px;
       color: var(--dim); font-size: 9.5px; font-weight: 600;
-      transition: color .2s, background .2s, transform .12s;
+      transition: color .2s, transform .12s var(--spring);
     }
-    .tab-btn svg { width: 22px; height: 22px; transition: transform .3s var(--spring); }
+    .tab-btn svg { width: 26px; height: 26px; transition: transform .35s var(--spring); }
     .tab-btn:active { transform: scale(.9); }
     .tab-btn.active { color: var(--cyan); }
-    .tab-btn.active svg { transform: translateY(-1px) scale(1.05); }
+    .tab-btn.active svg { transform: translateY(-1px) scale(1.08); }
 
-    /* ── Sheet ────────────────────────────────────────────────────── */
+    /* ── Sheet ── */
     .sheet-overlay {
       position: fixed; inset: 0; z-index: 100;
       background: rgba(2,6,11,.55);
@@ -428,7 +527,7 @@
     .sheet-overlay.open { opacity: 1; pointer-events: auto; }
     .sheet {
       width: 100%; max-height: 90vh; overflow-y: auto;
-      background: var(--bg-2);
+      background: var(--bg-2, #0c1420);
       border-radius: 24px 24px 0 0;
       border-top: .5px solid var(--border-strong);
       padding: 10px 16px calc(var(--safe-bottom) + 20px);
@@ -451,26 +550,24 @@
       background: var(--card); border: 1px solid var(--border-strong);
       color: var(--text); font-size: 13px; font-family: 'DM Mono', monospace;
     }
-    .field-row input:focus, .field-row select:focus { outline: none; border-color: var(--cyan); }
+    .field-row input:focus { outline: none; border-color: var(--cyan); }
     .btn {
       display: inline-flex; align-items: center; justify-content: center; gap: 7px;
       padding: 12px 16px; border-radius: 12px;
       background: var(--card-2); border: 1px solid var(--border-strong);
       color: var(--text); font-size: 13px; font-weight: 600;
-      transition: transform .14s var(--ease), background .14s;
+      transition: transform .14s var(--spring), background .14s;
     }
-    .btn:active { transform: scale(.97); background: var(--card-3); }
+    .btn:active { transform: scale(.96); background: var(--card-3); }
     .btn.primary { background: var(--cyan); border-color: var(--cyan); color: #06121c; }
     .btn.primary:active { background: #4fcde6; }
-    .btn.danger { color: var(--red); border-color: rgba(255,114,128,.28); }
     .btn.full { width: 100%; }
 
-    /* ── Toast ────────────────────────────────────────────────────── */
     .toast {
       position: fixed; left: 50%; bottom: calc(var(--safe-bottom) + 100px); z-index: 200;
       transform: translate(-50%, 12px); opacity: 0; pointer-events: none;
       padding: 11px 16px; border-radius: 100px;
-      background: rgba(20,32,50,.96); backdrop-filter: blur(20px);
+      background: rgba(20,32,50,.96); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border: 1px solid var(--border-strong);
       color: var(--text); font-size: 12px; font-weight: 500;
       box-shadow: 0 16px 40px rgba(0,0,0,.5);
@@ -480,13 +577,6 @@
     .toast.show { opacity: 1; transform: translate(-50%, 0); }
 
     .hidden { display: none !important; }
-    .skeleton {
-      background: linear-gradient(90deg, var(--card) 25%, var(--card-2) 50%, var(--card) 75%);
-      background-size: 200% 100%;
-      animation: shimmer 1.4s infinite;
-      border-radius: 6px; color: transparent;
-    }
-    @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
 
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after {
@@ -507,29 +597,29 @@
       <span id="connLabel">Connecting…</span>
     </div>
   </div>
-  <button class="range-chip" id="rangeChip">Today ▾</button>
+  <button class="icon-btn" id="notifBtn" aria-label="Notifications" title="Enable notifications">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+    </svg>
+    <span class="badge" id="notifBadge"></span>
+  </button>
+  <button class="range-chip" id="rangeChip">Today</button>
   <button class="refresh-btn" id="refreshBtn" aria-label="Refresh">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
   </button>
 </header>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     HOME SCREEN
-     ═══════════════════════════════════════════════════════════════ -->
+<!-- HOME -->
 <section class="screen active" id="screen-home">
-  <!-- Hero -->
   <div class="hero" id="heroCard">
     <div class="hero-head">
-      <div>
-        <div class="hero-label" id="heroLabel">Bedroom · AHT10</div>
-      </div>
+      <div><div class="hero-label" id="heroLabel">Bedroom · AHT10</div></div>
       <div class="hero-badge" id="heroBadge">LIVE</div>
     </div>
     <div class="hero-main">
       <div>
-        <div class="hero-temp">
-          <span id="heroTemp">—</span><span class="hero-temp-unit">°C</span>
-        </div>
+        <div class="hero-temp"><span id="heroTemp">—</span><span class="hero-temp-unit">°C</span></div>
         <div class="hero-temp-sub" id="heroSub">Waiting for telemetry…</div>
       </div>
       <div class="comfort-ring">
@@ -540,39 +630,20 @@
                   stroke-dasharray="201" stroke-dashoffset="201"
                   style="transition: stroke-dashoffset .8s var(--spring), stroke .4s;"/>
         </svg>
-        <div class="comfort-ring-label">
-          <div>
-            <div class="comfort-ring-score" id="comfortScore">—</div>
-            <div class="comfort-ring-sub">Comfort</div>
-          </div>
-        </div>
+        <div class="comfort-ring-label"><div>
+          <div class="comfort-ring-score" id="comfortScore">—</div>
+          <div class="comfort-ring-sub">Comfort</div>
+        </div></div>
       </div>
     </div>
     <div class="hero-metrics">
-      <div class="hero-metric">
-        <div class="hero-metric-label">Humidity</div>
-        <div class="hero-metric-value" id="heroHum">—</div>
-        <div class="hero-metric-delta" id="heroHumTrend"></div>
-      </div>
-      <div class="hero-metric">
-        <div class="hero-metric-label">Dew point</div>
-        <div class="hero-metric-value" id="heroDew">—</div>
-        <div class="hero-metric-delta" id="heroDewNote"></div>
-      </div>
-      <div class="hero-metric">
-        <div class="hero-metric-label">Feels like</div>
-        <div class="hero-metric-value" id="heroFeels">—</div>
-        <div class="hero-metric-delta" id="heroFeelsNote"></div>
-      </div>
-      <div class="hero-metric">
-        <div class="hero-metric-label">Trend</div>
-        <div class="hero-metric-value" id="heroTrend">—</div>
-        <div class="hero-metric-delta" id="heroTrendNote"></div>
-      </div>
+      <div class="hero-metric"><div class="hero-metric-label">Humidity</div><div class="hero-metric-value" id="heroHum">—</div><div class="hero-metric-delta" id="heroHumTrend"></div></div>
+      <div class="hero-metric"><div class="hero-metric-label">Dew point</div><div class="hero-metric-value" id="heroDew">—</div><div class="hero-metric-delta" id="heroDewNote"></div></div>
+      <div class="hero-metric"><div class="hero-metric-label">Feels like</div><div class="hero-metric-value" id="heroFeels">—</div><div class="hero-metric-delta" id="heroFeelsNote"></div></div>
+      <div class="hero-metric"><div class="hero-metric-label">Trend</div><div class="hero-metric-value" id="heroTrend">—</div><div class="hero-metric-delta" id="heroTrendNote"></div></div>
     </div>
   </div>
 
-  <!-- Relay chips -->
   <div class="section" style="margin-top:16px; margin-bottom:18px;">
     <div class="relay-row">
       <div class="relay-chip" id="chipHumidifier"><span class="dot"></span>Humidifier · —</div>
@@ -582,50 +653,28 @@
     </div>
   </div>
 
-  <!-- Around the home -->
   <div class="section">
-    <div class="section-head">
-      <div class="section-title">Around the home</div>
-      <div class="section-meta" id="quickUpdated">—</div>
-    </div>
-    <div class="quick-grid" id="quickGrid">
-      <!-- injected -->
-    </div>
+    <div class="section-head"><div class="section-title">Around the home</div><div class="section-meta" id="quickUpdated">—</div></div>
+    <div class="quick-grid" id="quickGrid"></div>
   </div>
 
-  <!-- Insights -->
   <div class="section">
-    <div class="section-head">
-      <div class="section-title">Insights</div>
-      <div class="section-meta">Live calculations</div>
-    </div>
-    <div class="insights" id="insightsList">
-      <div class="insight"><div class="insight-icon">…</div><div class="insight-body"><div class="insight-title">Analysing telemetry…</div><div class="insight-detail">Waiting for the first packets.</div></div></div>
-    </div>
+    <div class="section-head"><div class="section-title">Insights</div><div class="section-meta">Live calculations</div></div>
+    <div class="insights" id="insightsList"></div>
   </div>
 
-  <!-- Alerts -->
   <div class="section" id="homeAlertsSection" style="display:none;">
-    <div class="section-head">
-      <div class="section-title">Alerts</div>
-      <div class="section-meta" id="alertCount">0 active</div>
-    </div>
+    <div class="section-head"><div class="section-title">Alerts</div><div class="section-meta" id="alertCount">0 active</div></div>
     <div class="alert-list" id="homeAlerts"></div>
   </div>
 
-  <!-- Rooms -->
   <div class="section">
-    <div class="section-head">
-      <div class="section-title">Rooms</div>
-      <div class="section-meta">Tap for details</div>
-    </div>
+    <div class="section-head"><div class="section-title">Rooms</div><div class="section-meta">Tap for details</div></div>
     <div class="room-cards" id="roomCards"></div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     SENSORS SCREEN
-     ═══════════════════════════════════════════════════════════════ -->
+<!-- SENSORS -->
 <section class="screen" id="screen-sensors">
   <div class="section" style="margin-bottom:12px;">
     <div class="section-title">Sensor array</div>
@@ -634,13 +683,11 @@
   <div class="sensor-list" id="sensorList"></div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     CHARTS SCREEN
-     ═══════════════════════════════════════════════════════════════ -->
+<!-- CHARTS -->
 <section class="screen" id="screen-charts">
   <div class="section" style="margin-bottom:12px;">
     <div class="section-title">Telemetry explorer</div>
-    <div class="section-sub">Pinch to zoom · drag to pan</div>
+    <div class="section-sub">Pinch or use the slider below to zoom</div>
   </div>
   <div class="segmented" id="chartRangeSeg">
     <button data-range="today" class="active">Today</button>
@@ -662,20 +709,60 @@
         <option value="fan">Internal fan relay</option>
         <option value="rain">Rain</option>
         <option value="bmp">Barometric · BMP280</option>
-        <option value="radar">Presence · LD2420</option>
+        <option value="radar">Presence · LD2420 (radar)</option>
         <option value="sound">Acoustic · INMP441</option>
         <option value="lux">Illuminance · BH1750</option>
       </select>
+      <div class="zoom-pill">
+        <button id="zoomOutBtn" aria-label="Zoom out">−</button>
+        <button class="fit" id="zoomFitBtn">Fit</button>
+        <button id="zoomInBtn" aria-label="Zoom in">+</button>
+      </div>
     </div>
-    <div class="chart-container"><canvas id="mainChart"></canvas></div>
-    <div class="chart-legend" id="chartLegend">—</div>
-    <div class="stat-grid" id="chartStats"></div>
+
+    <div id="standardChartView">
+      <div class="chart-container"><canvas id="mainChart"></canvas></div>
+      <div class="chart-legend" id="chartLegend">—</div>
+      <div class="navigator" id="navigator">
+        <svg class="nav-spark" viewBox="0 0 400 46" preserveAspectRatio="none">
+          <path id="navPath" d="" fill="none" stroke="var(--cyan)" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke" opacity=".7"/>
+        </svg>
+        <div class="nav-window" id="navWindow"></div>
+      </div>
+      <div class="nav-hint" id="navHint">Drag slider to pan · tap edges to resize</div>
+      <div class="stat-grid" id="chartStats"></div>
+    </div>
+
+    <div id="presenceView" class="presence-view hidden">
+      <div class="presence-gauge-wrap">
+        <svg viewBox="0 0 200 200" class="presence-svg">
+          <circle cx="100" cy="100" r="80" fill="none" stroke="rgba(132,150,173,.18)" stroke-width="1"/>
+          <circle cx="100" cy="100" r="60" fill="none" stroke="rgba(132,150,173,.15)" stroke-width="1"/>
+          <circle cx="100" cy="100" r="40" fill="none" stroke="rgba(132,150,173,.12)" stroke-width="1"/>
+          <circle cx="100" cy="100" r="20" fill="none" stroke="rgba(132,150,173,.10)" stroke-width="1"/>
+          <text x="100" y="18" text-anchor="middle" fill="#5a6b81" font-size="9" font-family="DM Mono, monospace">4m</text>
+          <text x="100" y="38" text-anchor="middle" fill="#5a6b81" font-size="9" font-family="DM Mono, monospace">3m</text>
+          <text x="100" y="58" text-anchor="middle" fill="#5a6b81" font-size="9" font-family="DM Mono, monospace">2m</text>
+          <text x="100" y="78" text-anchor="middle" fill="#5a6b81" font-size="9" font-family="DM Mono, monospace">1m</text>
+          <circle cx="100" cy="100" r="6" fill="var(--cyan)" opacity=".9"/>
+          <circle id="presencePulse" cx="100" cy="20" r="20" fill="var(--amber)" opacity="0"/>
+          <circle id="presenceDot" cx="100" cy="20" r="7" fill="var(--amber)" opacity="0"/>
+        </svg>
+      </div>
+      <div class="presence-stats">
+        <div class="presence-distance" id="presenceDistance">—</div>
+        <div class="presence-status" id="presenceStatus">Waiting…</div>
+      </div>
+      <div class="presence-history">
+        <div class="section-sub" style="margin-bottom:6px;">Recent distance</div>
+        <div id="presenceHistory" style="height:52px;"></div>
+      </div>
+      <div class="stat-grid" id="presenceStats"></div>
+    </div>
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     EVENTS SCREEN
-     ═══════════════════════════════════════════════════════════════ -->
+<!-- EVENTS -->
 <section class="screen" id="screen-events">
   <div class="section" style="margin-bottom:12px;">
     <div class="section-title">Events</div>
@@ -688,18 +775,28 @@
     <button data-tab="gaps">Gaps</button>
     <button data-tab="log">Log</button>
   </div>
-  <div class="section" style="margin-top:12px;">
-    <div id="eventContent"></div>
-  </div>
+  <div class="section" style="margin-top:12px;"><div id="eventContent"></div></div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     MORE SCREEN
-     ═══════════════════════════════════════════════════════════════ -->
+<!-- MORE -->
 <section class="screen" id="screen-more">
   <div class="section" style="margin-bottom:12px;">
     <div class="section-title">More</div>
-    <div class="section-sub">Settings, data quality and personal records</div>
+    <div class="section-sub">Settings, notifications and personal records</div>
+  </div>
+
+  <div class="section">
+    <div class="section-head"><div class="section-title" style="font-size:12px;">Notifications</div></div>
+    <div class="more-list">
+      <button class="more-item" id="openNotifs">
+        <div class="more-icon amber">🔔</div>
+        <div class="more-text">
+          <div class="more-title" id="notifTitle">Enable iPhone notifications</div>
+          <div class="more-sub" id="notifSub">Rain, humidifier and fan changes</div>
+        </div>
+        <div class="more-chev">›</div>
+      </button>
+    </div>
   </div>
 
   <div class="section">
@@ -707,10 +804,7 @@
     <div class="more-list">
       <button class="more-item" id="openHealth">
         <div class="more-icon pink">♥</div>
-        <div class="more-text">
-          <div class="more-title">Pulse & SpO₂ records</div>
-          <div class="more-sub">MAX30102 · token-protected</div>
-        </div>
+        <div class="more-text"><div class="more-title">Pulse & SpO₂ records</div><div class="more-sub">MAX30102 · token-protected</div></div>
         <div class="more-chev">›</div>
       </button>
     </div>
@@ -719,44 +813,16 @@
   <div class="section">
     <div class="section-head"><div class="section-title" style="font-size:12px;">Data</div></div>
     <div class="more-list">
-      <button class="more-item" id="openQuality">
-        <div class="more-icon green">◈</div>
-        <div class="more-text">
-          <div class="more-title">Data quality report</div>
-          <div class="more-sub">Completeness, gaps and out-of-range values</div>
-        </div>
-        <div class="more-chev">›</div>
-      </button>
-      <button class="more-item" id="openDeviceConfig">
-        <div class="more-icon violet">⌘</div>
-        <div class="more-text">
-          <div class="more-title">Device configuration</div>
-          <div class="more-sub">Synced from the OLED</div>
-        </div>
-        <div class="more-chev">›</div>
-      </button>
-      <button class="more-item" id="openExport">
-        <div class="more-icon amber">⇩</div>
-        <div class="more-text">
-          <div class="more-title">Export data</div>
-          <div class="more-sub">Selected range · CSV</div>
-        </div>
-        <div class="more-chev">›</div>
-      </button>
+      <button class="more-item" id="openQuality"><div class="more-icon green">◈</div><div class="more-text"><div class="more-title">Data quality report</div><div class="more-sub">Completeness and gaps</div></div><div class="more-chev">›</div></button>
+      <button class="more-item" id="openDeviceConfig"><div class="more-icon violet">⌘</div><div class="more-text"><div class="more-title">Device configuration</div><div class="more-sub">Synced from the OLED</div></div><div class="more-chev">›</div></button>
+      <button class="more-item" id="openExport"><div class="more-icon amber">⇩</div><div class="more-text"><div class="more-title">Export data</div><div class="more-sub">Selected range · CSV</div></div><div class="more-chev">›</div></button>
     </div>
   </div>
 
   <div class="section">
     <div class="section-head"><div class="section-title" style="font-size:12px;">Preferences</div></div>
     <div class="more-list">
-      <button class="more-item" id="openSettings">
-        <div class="more-icon">⚙</div>
-        <div class="more-text">
-          <div class="more-title">System settings</div>
-          <div class="more-sub">Thresholds, sample rate, API token</div>
-        </div>
-        <div class="more-chev">›</div>
-      </button>
+      <button class="more-item" id="openSettings"><div class="more-icon">⚙</div><div class="more-text"><div class="more-title">System settings</div><div class="more-sub">Thresholds, sample rate, API token</div></div><div class="more-chev">›</div></button>
     </div>
   </div>
 
@@ -766,35 +832,29 @@
   </div>
 </section>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     TAB BAR
-     ═══════════════════════════════════════════════════════════════ -->
 <nav class="tab-bar">
   <button class="tab-btn active" data-tab="home">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 9.5V21h5v-6h4v6h5V9.5"/></svg>
     Home
   </button>
   <button class="tab-btn" data-tab="sensors">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     Sensors
   </button>
   <button class="tab-btn" data-tab="charts">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 5-8 4 5"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-6 4 4 5-8 4 5"/></svg>
     Charts
   </button>
   <button class="tab-btn" data-tab="events">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>
     Events
   </button>
   <button class="tab-btn" data-tab="more">
-    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="18" cy="12" r="1.6"/></svg>
+    <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>
     More
   </button>
 </nav>
 
-<!-- ═══════════════════════════════════════════════════════════════
-     SHEETS
-     ═══════════════════════════════════════════════════════════════ -->
 <div class="sheet-overlay" id="sheetOverlay">
   <div class="sheet" id="sheet">
     <div class="sheet-grabber"></div>
@@ -811,12 +871,13 @@
    CONFIG
    ═══════════════════════════════════════════════════════════════ */
 const API_URL = 'https://script.google.com/macros/s/AKfycby6wondGRCpRZ2s-QG_uvGUc8hNHtaExHVWBrsxtPI1yXa8lYxrZIhpOM6ENhZMsyNfIw/exec';
-const SETTINGS_KEY = 'smartHomeiPhone.settings.v1';
-const TOKEN_KEY    = 'smartHomeiPhone.token.v1';
+const SETTINGS_KEY = 'smartHomeiPhone.settings.v2';
+const TOKEN_KEY = 'smartHomeiPhone.token.v2';
+const LAST_EVENT_KEY = 'smartHomeiPhone.lastEventTs.v1';
 const DEFAULT_SETTINGS = {
   coreLimit: 50, indoorTempMax: 35, indoorHumMin: 25, indoorHumMax: 75,
   staleMinutes: 5, offlineMinutes: 15, sampleMinutes: 1,
-  refreshSeconds: 120, gapMinutes: 5
+  refreshSeconds: 120, gapMinutes: 5, chartDefaultHours: 3
 };
 
 const SENSORS = {
@@ -829,10 +890,6 @@ const SENSORS = {
   radar:  { name:'Presence · LD2420',     short:'Presence',    primary:'radar',         unit:'cm',   fields:['radar'],              limits:{radar:[0,1200]},                    color:'#f7be6a', icon:'◎' },
   sound:  { name:'Acoustic · INMP441',    short:'Acoustic',    primary:'sound',         unit:'dBFS', fields:['sound'],              limits:{sound:[-120,0]},                    color:'#ed82c1', icon:'≋' },
   lux:    { name:'Illuminance · BH1750',  short:'Light',       primary:'lux',           unit:'lux',  fields:['lux'],                limits:{lux:[0,200000]},                    color:'#f1df75', icon:'✧' }
-};
-const RELAYS = {
-  humidifier: { name:'Bedroom humidifier', primary:'humidifierOn', color:'#5ee0a8' },
-  fan:        { name:'Internal fan',       primary:'fanOn',        color:'#f7be6a' }
 };
 const FIELD_NAMES = {
   ahtTemp:'Bedroom temp', ahtHum:'Bedroom RH', livingTemp:'Living temp', livingHum:'Living RH',
@@ -847,13 +904,17 @@ const FIELD_NAMES = {
 const state = {
   allPoints: [], explicitGaps: [],
   filteredPoints: [], filteredGaps: [],
-  range: 'today', customRange: null,
-  sensor: 'aht10', tab: 'home', eventTab: 'humidifier',
+  range: 'today', sensor: 'aht10', tab: 'home', eventTab: 'humidifier',
   chart: null,
+  chartFullRange: null,
+  chartZoom: null,
   privateData: null,
   apiError: '', privateApiError: '',
   token: '', busy: false, lastSync: null,
-  settings: {}
+  settings: {},
+  lastProcessedTime: 0,
+  transitions: [],
+  notificationsOn: false
 };
 
 const $ = (id) => document.getElementById(id);
@@ -861,23 +922,17 @@ const fmt = (v, d=1) => v == null || !Number.isFinite(Number(v)) ? '—' : Numbe
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nowMs = () => Date.now();
 
-/* ═══════════════════════════════════════════════════════════════
-   SETTINGS / TOKEN
-   ═══════════════════════════════════════════════════════════════ */
+/* Settings / Token */
 function loadSettings() {
-  try {
-    const raw = localStorage.getItem(SETTINGS_KEY);
-    return { ...DEFAULT_SETTINGS, ...(raw ? JSON.parse(raw) : {}) };
-  } catch { return { ...DEFAULT_SETTINGS }; }
+  try { const r = localStorage.getItem(SETTINGS_KEY); return { ...DEFAULT_SETTINGS, ...(r ? JSON.parse(r) : {}) }; }
+  catch { return { ...DEFAULT_SETTINGS }; }
 }
-function saveSettings() {
-  try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); } catch {}
-}
+function saveSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); } catch {} }
 function loadToken() { try { return localStorage.getItem(TOKEN_KEY) || ''; } catch { return ''; } }
 function saveToken(t) { try { localStorage.setItem(TOKEN_KEY, t); } catch {} }
 
 /* ═══════════════════════════════════════════════════════════════
-   PARSER (identical rules to original — do not change)
+   PARSER
    ═══════════════════════════════════════════════════════════════ */
 function parseTimestamp(ts, includeSeconds=true) {
   if (!/^\d{12}(\d{2})?$/.test(ts)) return null;
@@ -888,15 +943,12 @@ function parseTimestamp(ts, includeSeconds=true) {
   if (d.getFullYear()!==year||d.getMonth()!==month-1||d.getDate()!==day||hour>23||minute>59||second>59) return null;
   return d;
 }
-function num(cell, re) {
-  const m = cell.match(re); if (!m) return null;
-  const n = Number(m[1]); return Number.isFinite(n) ? n : null;
-}
-function unwrapRows(payload) {
-  if (Array.isArray(payload)) return payload;
-  if (payload?.data && Array.isArray(payload.data)) return payload.data;
-  if (payload?.values && Array.isArray(payload.values)) return payload.values;
-  if (payload?.rows && Array.isArray(payload.rows)) return payload.rows;
+function num(cell, re) { const m = cell.match(re); if (!m) return null; const n = Number(m[1]); return Number.isFinite(n) ? n : null; }
+function unwrapRows(p) {
+  if (Array.isArray(p)) return p;
+  if (p?.data && Array.isArray(p.data)) return p.data;
+  if (p?.values && Array.isArray(p.values)) return p.values;
+  if (p?.rows && Array.isArray(p.rows)) return p.rows;
   throw new Error('Unexpected API response.');
 }
 function parseSheet(payload) {
@@ -913,10 +965,8 @@ function parseSheet(payload) {
         if (s && e && e >= s) gaps.push({ start: s, end: e, source: 'Sheet marker' });
         continue;
       }
-      const tM = cell.match(/\[(\d{14})\]/);
-      if (!tM) continue;
-      const time = parseTimestamp(tM[1], true);
-      if (!time) continue;
+      const tM = cell.match(/\[(\d{14})\]/); if (!tM) continue;
+      const time = parseTimestamp(tM[1], true); if (!time) continue;
       const rainM = cell.match(/\|\s*(RNY|RNN)\s*\|\s*(\d+(?:\.\d+)?)\s*%?/i);
       const bedM  = cell.match(/TEM\s*([-+]?\d*\.?\d+)\s*HUM\s*([-+]?\d*\.?\d+)/i);
       const livM  = cell.match(/LRT\s*([-+]?\d*\.?\d+)\s*HUM\s*([-+]?\d*\.?\d+)/i);
@@ -953,12 +1003,11 @@ function parseSheet(payload) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   ADVANCED CALCULATIONS (all real, from data)
+   ADVANCED CALCULATIONS
    ═══════════════════════════════════════════════════════════════ */
 function dewPoint(T, RH) {
   if (T == null || RH == null || RH <= 0) return null;
-  const a = 17.625, b = 243.04;
-  const g = Math.log(RH/100) + (a*T)/(b+T);
+  const a = 17.625, b = 243.04, g = Math.log(RH/100) + (a*T)/(b+T);
   return (b*g)/(a-g);
 }
 function heatIndex(T, RH) {
@@ -995,8 +1044,7 @@ function trendRate(points, field, hours=3) {
   if (recent.length < 2) return null;
   const t0 = recent[0].time.getTime(), t1 = recent[recent.length-1].time.getTime();
   if (t1 === t0) return null;
-  const dt = (t1 - t0) / 3600000;
-  return (recent[recent.length-1][field] - recent[0][field]) / dt;
+  return (recent[recent.length-1][field] - recent[0][field]) / ((t1 - t0) / 3600000);
 }
 function relayEfficacy(points, relayField, valueField) {
   const on = [], off = [];
@@ -1015,10 +1063,7 @@ function relayEfficacy(points, relayField, valueField) {
 function stats(values) {
   const v = values.filter(x => x != null && Number.isFinite(x));
   if (!v.length) return { min:null, max:null, avg:null, n:0 };
-  return {
-    min: Math.min(...v), max: Math.max(...v),
-    avg: v.reduce((a,b)=>a+b,0)/v.length, n: v.length
-  };
+  return { min: Math.min(...v), max: Math.max(...v), avg: v.reduce((a,b)=>a+b,0)/v.length, n: v.length };
 }
 function latestOf(points, field) {
   for (let i = points.length-1; i >= 0; i--) {
@@ -1057,9 +1102,6 @@ function formatTime(date, withDate=false) {
    ═══════════════════════════════════════════════════════════════ */
 function rangeBounds() {
   const now = new Date();
-  if (state.range === 'custom' && state.customRange) {
-    return { start: new Date(state.customRange.start + 'T00:00:00'), end: new Date(state.customRange.end + 'T23:59:59.999') };
-  }
   const start = new Date(now), end = new Date(now);
   end.setHours(23,59,59,999);
   if (state.range === 'today') start.setHours(0,0,0,0);
@@ -1072,13 +1114,10 @@ function rangeBounds() {
   return { start, end };
 }
 function rangeLabel() {
-  return { today:'Today', yesterday:'Yesterday', '3days':'3 days', '7days':'7 days',
-           '30days':'30 days', '90days':'90 days', 'all':'All', custom:'Custom' }[state.range] || 'Today';
+  return { today:'Today', yesterday:'Yesterday', '3days':'3D', '7days':'7D',
+           '30days':'30D', '90days':'90D', 'all':'All' }[state.range] || 'Today';
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   FILTER
-   ═══════════════════════════════════════════════════════════════ */
 function detectGaps(points, stored) {
   const out = [...stored.map(g => ({...g}))];
   for (let i = 1; i < points.length; i++) {
@@ -1098,14 +1137,214 @@ function applyFilter() {
   const { start, end } = rangeBounds();
   state.filteredPoints = state.allPoints.filter(p => p.time >= start && p.time <= end);
   state.filteredGaps = detectGaps(state.filteredPoints, state.explicitGaps.filter(g => g.end >= start && g.start <= end));
+  state.chartFullRange = null;
+  state.chartZoom = null;
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   RENDER — HEADER / CONNECTION
+   NOTIFICATIONS
+   ═══════════════════════════════════════════════════════════════ */
+async function requestNotificationPermission() {
+  if (!('Notification' in window)) {
+    showToast('Notifications not supported here');
+    return false;
+  }
+  if (Notification.permission === 'granted') {
+    state.notificationsOn = true;
+    updateNotifUI();
+    return true;
+  }
+  if (Notification.permission === 'denied') {
+    showToast('Blocked — enable in iOS Settings → Safari → Notifications');
+    return false;
+  }
+  try {
+    const res = await Notification.requestPermission();
+    state.notificationsOn = res === 'granted';
+    updateNotifUI();
+    return state.notificationsOn;
+  } catch (e) {
+    showToast('Could not request permission');
+    return false;
+  }
+}
+
+function updateNotifUI() {
+  const btn = $('notifBtn');
+  const badge = $('notifBadge');
+  const title = $('notifTitle');
+  const sub = $('notifSub');
+
+  let enabled = false;
+  if ('Notification' in window && Notification.permission === 'granted') enabled = true;
+  state.notificationsOn = enabled;
+
+  if (enabled) {
+    btn.classList.add('on');
+    btn.title = 'Notifications enabled';
+    if (title) title.textContent = 'Notifications enabled';
+    if (sub) sub.textContent = 'Rain, humidifier and fan changes';
+  } else {
+    btn.classList.remove('on');
+    btn.title = 'Enable notifications';
+    if (title) title.textContent = 'Enable iPhone notifications';
+    if (sub) {
+      if ('Notification' in window && Notification.permission === 'denied') {
+        sub.textContent = 'Blocked — enable in iOS Settings';
+      } else {
+        sub.textContent = 'Rain, humidifier and fan changes';
+      }
+    }
+  }
+}
+
+async function fireNotification(title, body, tag) {
+  if (!state.notificationsOn) return;
+  try {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      const opts = {
+        body,
+        tag,
+        icon: 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" rx="22" fill="%235bd7ef"/%3E%3C/svg%3E',
+        badge: '',
+        silent: false
+      };
+      // Prefer ServiceWorker if available (more reliable on iOS PWA)
+      if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+        const reg = await navigator.serviceWorker.ready;
+        if (reg && reg.showNotification) {
+          await reg.showNotification(title, opts);
+          return;
+        }
+      }
+      new Notification(title, opts);
+    }
+  } catch (e) {
+    console.warn('Notification failed:', e);
+  }
+}
+
+function detectTransitions(newPoints, previousPoint) {
+  const list = [];
+  if (!newPoints.length) return list;
+  let prev = previousPoint;
+  for (const p of newPoints) {
+    if (prev) {
+      if (prev.rainCode !== p.rainCode) {
+        if (p.rainCode === 'RNY') list.push({ type:'rain-start', title:'🌧 Rain started', body:`Precipitation at ${fmt(p.rainDensity,0)}%` });
+        else if (p.rainCode === 'RNN') list.push({ type:'rain-end', title:'☀ Rain stopped', body:'Precipitation ended' });
+      }
+      if (prev.humidifierOn !== p.humidifierOn && p.humidifierOn != null) {
+        list.push({ type:'humidifier', title: p.humidifierOn ? '💧 Humidifier ON' : '💧 Humidifier OFF', body: p.humidifierOn ? 'Bedroom humidifier started' : 'Bedroom humidifier stopped' });
+      }
+      if (prev.fanOn !== p.fanOn && p.fanOn != null) {
+        list.push({ type:'fan', title: p.fanOn ? '🌀 Fan ON' : '🌀 Fan OFF', body: p.fanOn ? 'Internal cooling fan started' : 'Internal cooling fan stopped' });
+      }
+    }
+    prev = p;
+  }
+  return list;
+}
+
+function processNewPointsForNotifications() {
+  const last = state.lastProcessedTime;
+  if (!state.allPoints.length) return;
+
+  const newPoints = last > 0
+    ? state.allPoints.filter(p => p.time.getTime() > last)
+    : [];
+  const previous = last > 0
+    ? state.allPoints.filter(p => p.time.getTime() <= last).pop()
+    : null;
+
+  if (newPoints.length && previous) {
+    const transitions = detectTransitions(newPoints, previous);
+    // Cap and fire the most recent 3
+    transitions.slice(-3).forEach(t => {
+      state.transitions.push({ ts: Date.now(), ...t });
+      fireNotification(t.title, t.body, t.type + '-' + Date.now());
+    });
+    if (transitions.length) {
+      if (state.transitions.length > 100) state.transitions = state.transitions.slice(-100);
+      if (!state.notificationsOn) {
+        // Fallback toast
+        showToast(transitions[transitions.length - 1].title);
+      }
+      $('notifBadge')?.classList.add('show');
+    }
+  }
+  // Update baseline
+  state.lastProcessedTime = state.allPoints[state.allPoints.length - 1].time.getTime();
+  try { localStorage.setItem(LAST_EVENT_KEY, String(state.lastProcessedTime)); } catch {}
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FETCH
+   ═══════════════════════════════════════════════════════════════ */
+async function fetchData(manual = false) {
+  if (state.busy) return;
+  state.busy = true;
+  const btn = $('refreshBtn');
+  btn.classList.add('spinning');
+  setConnection('', 'Syncing…');
+  try {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 20000);
+    const res = await fetch(API_URL, { cache: 'no-store', signal: ctrl.signal, headers: { 'Accept': 'application/json' } });
+    clearTimeout(timer);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const payload = await res.json();
+    const parsed = parseSheet(payload);
+    const isFirst = state.allPoints.length === 0;
+    state.allPoints = parsed.dataPoints;
+    state.explicitGaps = parsed.gaps;
+    state.apiError = '';
+    state.lastSync = new Date();
+
+    if (isFirst) {
+      state.lastProcessedTime = state.allPoints[state.allPoints.length-1]?.time.getTime() || 0;
+    } else {
+      processNewPointsForNotifications();
+    }
+    applyFilter();
+    renderAll();
+    setConnectionFromData();
+    if (state.token) fetchPrivate();
+    if (manual) showToast(`Synced ${state.allPoints.length.toLocaleString()} records`);
+    $('footerStatus').textContent = `Synced ${state.lastSync.toLocaleTimeString()} · ${state.allPoints.length.toLocaleString()} packets`;
+    // Update badge count
+    const unread = state.transitions.length;
+    $('notifBadge')?.classList.toggle('show', unread > 0);
+  } catch (e) {
+    state.apiError = e.name === 'AbortError' ? 'Timeout after 20s' : e.message;
+    setConnection('off', 'API error');
+    if (manual) showToast('Sync failed: ' + state.apiError);
+  } finally {
+    state.busy = false;
+    btn.classList.remove('spinning');
+  }
+}
+
+async function fetchPrivate() {
+  if (!state.token) { state.privateData = null; return; }
+  try {
+    const url = `${API_URL}?action=dashboard&token=${encodeURIComponent(state.token)}&t=${Date.now()}`;
+    const res = await fetch(url, { cache: 'no-store', headers: { 'Accept': 'application/json' } });
+    const data = await res.json();
+    if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    state.privateData = data;
+    state.privateApiError = '';
+  } catch (e) {
+    state.privateApiError = e.message;
+    state.privateData = null;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER: header
    ═══════════════════════════════════════════════════════════════ */
 function setConnection(kind, label) {
-  const dot = $('connDot');
-  dot.className = 'live-dot ' + (kind || '');
+  $('connDot').className = 'live-dot ' + (kind || '');
   $('connLabel').textContent = label;
 }
 function setConnectionFromData() {
@@ -1114,28 +1353,26 @@ function setConnectionFromData() {
   const latest = state.allPoints[state.allPoints.length-1];
   const age = (nowMs() - latest.time.getTime()) / 60000;
   if (age > state.settings.offlineMinutes) return setConnection('off', `Offline ${formatDuration(age)}`);
-  if (age > state.settings.staleMinutes)   return setConnection('warn', `Stale ${formatDuration(age)}`);
+  if (age > state.settings.staleMinutes) return setConnection('warn', `Stale ${formatDuration(age)}`);
   setConnection('on', `Live · ${formatDuration(age)} ago`);
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   RENDER — HOME
+   RENDER: home
    ═══════════════════════════════════════════════════════════════ */
 function renderHome() {
   const points = state.filteredPoints;
   const latest = latestOf(points, 'ahtTemp') || latestOf(state.allPoints, 'ahtTemp');
-
-  /* Hero */
   if (latest) {
     const t = latest.ahtTemp, h = latest.ahtHum;
     $('heroTemp').textContent = fmt(t);
     $('heroHum').textContent = h != null ? fmt(h, 0) + '%' : '—';
     const dp = dewPoint(t, h);
     $('heroDew').textContent = dp != null ? fmt(dp) + '°' : '—';
-    $('heroDewNote').textContent = dp != null && dp > t - 3 ? 'close to air' : dp != null ? 'dry' : '';
+    $('heroDewNote').textContent = dp != null && t != null && dp > t - 3 ? 'close to air' : dp != null ? 'dry' : '';
     const hi = heatIndex(t, h);
     $('heroFeels').textContent = hi != null ? fmt(hi) + '°' : '—';
-    $('heroFeelsNote').textContent = hi != null && hi > t + 1.5 ? 'humid heat' : 'similar';
+    $('heroFeelsNote').textContent = hi != null && t != null && hi > t + 1.5 ? 'humid heat' : 'similar';
     const trend = trendRate(state.allPoints, 'ahtTemp', 3);
     $('heroTrend').textContent = trend != null ? (trend >= 0 ? '+' : '') + trend.toFixed(1) + '°/h' : '—';
     $('heroTrend').style.color = trend != null && Math.abs(trend) > 1 ? (trend > 0 ? 'var(--red)' : 'var(--blue)') : 'var(--text)';
@@ -1144,14 +1381,11 @@ function renderHome() {
     $('heroHumTrend').className = 'hero-metric-delta ' + (hTrend != null ? (hTrend > 0.5 ? 'up' : hTrend < -0.5 ? 'down' : '') : '');
     $('heroTrendNote').textContent = trend == null ? '' : Math.abs(trend) < 0.3 ? 'stable' : '3h rate';
     $('heroSub').textContent = `Updated ${formatTime(latest.time, true)}`;
-
     const score = comfortScore(t, h);
     $('comfortScore').textContent = score != null ? score : '—';
     const arc = $('comfortArc');
-    const offset = score != null ? 201 * (1 - score/100) : 201;
-    arc.setAttribute('stroke-dashoffset', offset.toFixed(1));
+    arc.setAttribute('stroke-dashoffset', (score != null ? 201 * (1 - score/100) : 201).toFixed(1));
     arc.setAttribute('stroke', score >= 80 ? 'var(--green)' : score >= 60 ? 'var(--amber)' : 'var(--red)');
-
     const fresh = freshness(state.allPoints, ['ahtTemp']);
     const badge = $('heroBadge');
     badge.textContent = fresh.label.toUpperCase();
@@ -1163,7 +1397,6 @@ function renderHome() {
     $('heroBadge').className = 'hero-badge off';
   }
 
-  /* Relay chips */
   renderRelayChip('chipHumidifier', 'Humidifier', latest?.humidifierOn);
   renderRelayChip('chipFan', 'Fan', latest?.fanOn);
   const rainLatest = latestOf(state.allPoints, 'rainDensity');
@@ -1171,12 +1404,9 @@ function renderHome() {
   if (rainLatest && rainLatest.rainCode === 'RNY') {
     rainChip.className = 'relay-chip rain';
     rainChip.innerHTML = `<span class="dot"></span>Rain · ${fmt(rainLatest.rainDensity,0)}%`;
-  } else if (rainLatest) {
-    rainChip.className = 'relay-chip';
-    rainChip.innerHTML = '<span class="dot"></span>Rain · clear';
   } else {
     rainChip.className = 'relay-chip';
-    rainChip.innerHTML = '<span class="dot"></span>Rain · —';
+    rainChip.innerHTML = `<span class="dot"></span>Rain · ${rainLatest ? 'clear' : '—'}`;
   }
   const radarLatest = latestOf(state.allPoints, 'radar');
   const presenceChip = $('chipPresence');
@@ -1193,19 +1423,10 @@ function renderHome() {
     presenceChip.innerHTML = '<span class="dot"></span>Presence · —';
   }
 
-  /* Quick grid */
   renderQuickGrid();
-
-  /* Insights */
   renderInsights();
-
-  /* Alerts */
   renderAlerts();
-
-  /* Rooms */
   renderRooms();
-
-  /* Meta */
   if (latest) $('quickUpdated').textContent = 'Updated ' + formatTime(latest.time);
 }
 function renderRelayChip(id, label, val) {
@@ -1225,10 +1446,9 @@ function renderQuickGrid() {
   grid.innerHTML = cards.map(c => {
     const latest = latestOf(state.allPoints, c.field);
     const val = latest ? latest[c.field] : null;
-    const unit = SENSORS[c.key].unit;
     const points = state.filteredPoints.slice(-60).map(p => p[c.field]);
     const sub = c.extra && latest && latest[c.extra] != null
-      ? `RH ${fmt(latest[c.extra],0)}%`
+      ? `RH ${fmt(latest[c.extra], 0)}%`
       : latest ? `Updated ${formatTime(latest.time)}` : 'No data';
     return `
       <button class="quick-card" data-open-sensor="${c.key}">
@@ -1236,17 +1456,15 @@ function renderQuickGrid() {
           <div class="quick-card-name">${c.label}</div>
           <div class="quick-card-icon" style="color:${c.color}">${c.icon}</div>
         </div>
-        <div class="quick-card-value">${fmt(val, c.key === 'lux' ? 0 : 1)}<span class="quick-card-unit">${unit}</span></div>
+        <div class="quick-card-value">${fmt(val, c.key === 'lux' ? 0 : 1)}<span class="quick-card-unit">${SENSORS[c.key].unit}</span></div>
         <div class="quick-card-sub">${sub}</div>
         <div class="quick-card-spark">${sparkSVG(points, c.color, 130, 26)}</div>
       </button>`;
   }).join('');
-  grid.querySelectorAll('[data-open-sensor]').forEach(el => {
-    el.addEventListener('click', () => openSensorSheet(el.dataset.openSensor));
-  });
+  grid.querySelectorAll('[data-open-sensor]').forEach(el => el.addEventListener('click', () => openSensorSheet(el.dataset.openSensor)));
 }
 function sparkSVG(values, color, w=100, h=28) {
-  const v = values.filter(x => x != null && Number.isFinite(x));
+  const v = values.map(x => x === true ? 1 : x === false ? 0 : x).filter(x => x != null && Number.isFinite(x));
   if (v.length < 2) return '';
   const min = Math.min(...v), max = Math.max(...v);
   const range = max - min || 1;
@@ -1255,14 +1473,10 @@ function sparkSVG(values, color, w=100, h=28) {
   return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" width="100%" height="${h}"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round" opacity=".9"/></svg>`;
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   INSIGHTS
-   ═══════════════════════════════════════════════════════════════ */
 function renderInsights() {
   const host = $('insightsList');
   const latest = latestOf(state.allPoints, 'ahtTemp');
   const insights = [];
-
   if (latest) {
     const t = latest.ahtTemp, h = latest.ahtHum;
     const dp = dewPoint(t, h);
@@ -1274,61 +1488,27 @@ function renderInsights() {
     const cScore = comfortScore(t, h);
     if (cScore != null && cScore >= 85) insights.push({ icon:'★', cls:'good', title:'Excellent comfort', detail:`Comfort score ${cScore}/100 (ASHRAE 20–26°C / 30–60%).` });
     else if (cScore != null && cScore < 50) insights.push({ icon:'!', cls:'warn', title:'Comfort outside ideal band', detail:`Comfort score ${cScore}/100. Consider ventilation or HVAC adjustment.` });
-
     const tRate = trendRate(state.allPoints, 'ahtTemp', 3);
     if (tRate != null && Math.abs(tRate) > 1.5) {
-      insights.push({
-        icon: tRate > 0 ? '↑' : '↓',
-        cls: tRate > 0 ? 'warn' : '',
-        title: tRate > 0 ? 'Temperature rising quickly' : 'Temperature falling quickly',
-        detail: `${Math.abs(tRate).toFixed(1)}°C per hour over the last 3h.`
-      });
+      insights.push({ icon: tRate > 0 ? '↑' : '↓', cls: tRate > 0 ? 'warn' : '', title: tRate > 0 ? 'Temperature rising quickly' : 'Temperature falling quickly', detail:`${Math.abs(tRate).toFixed(1)}°C per hour over the last 3h.` });
     }
-
-    /* Humidifier efficacy */
     const hEff = relayEfficacy(state.filteredPoints, 'humidifierOn', 'ahtHum');
     if (hEff.on != null && hEff.off != null && hEff.onN >= 3) {
       const delta = hEff.on - hEff.off;
-      insights.push({
-        icon: '◉', cls: 'violet',
-        title: delta > 0.2 ? 'Humidifier is raising humidity' : 'Humidifier effect is small',
-        detail: `RH rate: ${hEff.on >= 0 ? '+' : ''}${hEff.on.toFixed(2)}%/h when ON vs ${hEff.off >= 0 ? '+' : ''}${hEff.off.toFixed(2)}%/h when OFF.`
-      });
+      insights.push({ icon: '◉', cls: 'violet', title: delta > 0.2 ? 'Humidifier is raising humidity' : 'Humidifier effect is small', detail: `RH rate: ${hEff.on >= 0 ? '+' : ''}${hEff.on.toFixed(2)}%/h when ON vs ${hEff.off >= 0 ? '+' : ''}${hEff.off.toFixed(2)}%/h when OFF.` });
     }
-
-    /* Fan efficacy */
     const fEff = relayEfficacy(state.filteredPoints, 'fanOn', 'dsTemp');
     if (fEff.on != null && fEff.off != null && fEff.onN >= 3) {
       const delta = fEff.on - fEff.off;
-      insights.push({
-        icon: '⌬', cls: delta < -0.1 ? 'good' : 'warn',
-        title: delta < -0.1 ? 'Fan is slowing core heat rise' : 'Fan impact inconclusive',
-        detail: `Core rate: ${fEff.on >= 0 ? '+' : ''}${fEff.on.toFixed(2)}°C/h when ON vs ${fEff.off >= 0 ? '+' : ''}${fEff.off.toFixed(2)}°C/h when OFF.`
-      });
-    }
-
-    /* Pressure trend — quick weather hint */
-    const pRecent = latestOf(state.allPoints, 'pressure');
-    const pOld = state.allPoints.slice(-60).find(p => p.pressure != null);
-    if (pRecent && pOld && pOld !== pRecent) {
-      const delta = pRecent.pressure - pOld.pressure;
-      if (Math.abs(delta) > 3) insights.push({
-        icon: delta > 0 ? '↑' : '↓',
-        cls: '',
-        title: delta > 0 ? 'Pressure rising' : 'Pressure falling',
-        detail: `${delta > 0 ? '+' : ''}${delta.toFixed(1)} hPa over recent packets. Falling pressure often precedes rain.`
-      });
+      insights.push({ icon: '⌬', cls: delta < -0.1 ? 'good' : 'warn', title: delta < -0.1 ? 'Fan is slowing core heat rise' : 'Fan impact inconclusive', detail: `Core rate: ${fEff.on >= 0 ? '+' : ''}${fEff.on.toFixed(2)}°C/h when ON vs ${fEff.off >= 0 ? '+' : ''}${fEff.off.toFixed(2)}°C/h when OFF.` });
     }
   } else {
     insights.push({ icon:'…', cls:'', title:'Waiting for data', detail:'Connect the API to start generating insights.' });
   }
-
-  /* Core temperature warning */
   const core = latestOf(state.allPoints, 'dsTemp');
   if (core && core.dsTemp >= state.settings.coreLimit) {
     insights.unshift({ icon:'!', cls:'bad', title:'Device core hot', detail:`${fmt(core.dsTemp)}°C exceeds the ${state.settings.coreLimit}°C warning threshold.` });
   }
-
   host.innerHTML = insights.slice(0, 6).map(x => `
     <div class="insight">
       <div class="insight-icon ${x.cls}">${x.icon}</div>
@@ -1340,9 +1520,6 @@ function renderInsights() {
   `).join('') || '<div class="empty-state">No insights for this window.</div>';
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ALERTS
-   ═══════════════════════════════════════════════════════════════ */
 function renderAlerts() {
   const list = [];
   if (state.apiError) list.push({ level:'critical', title:'Data API unavailable', detail: state.apiError });
@@ -1352,14 +1529,11 @@ function renderAlerts() {
     if (age > state.settings.offlineMinutes) list.push({ level:'critical', title:'Telemetry link offline', detail:`Last packet ${formatDuration(age)} ago.` });
     else if (age > state.settings.staleMinutes) list.push({ level:'warn', title:'Telemetry is stale', detail:`Last packet ${formatDuration(age)} ago.` });
     if (latest.ahtTemp >= state.settings.indoorTempMax) list.push({ level:'warn', title:'Indoor temperature high', detail:`${fmt(latest.ahtTemp)}°C ≥ ${state.settings.indoorTempMax}°C.` });
-    if (latest.ahtHum != null && (latest.ahtHum < state.settings.indoorHumMin || latest.ahtHum > state.settings.indoorHumMax)) {
-      list.push({ level:'warn', title:'Indoor humidity out of band', detail:`${fmt(latest.ahtHum,0)}% — expected ${state.settings.indoorHumMin}–${state.settings.indoorHumMax}%.` });
-    }
+    if (latest.ahtHum != null && (latest.ahtHum < state.settings.indoorHumMin || latest.ahtHum > state.settings.indoorHumMax)) list.push({ level:'warn', title:'Indoor humidity out of band', detail:`${fmt(latest.ahtHum,0)}% — expected ${state.settings.indoorHumMin}–${state.settings.indoorHumMax}%.` });
   }
   const core = latestOf(state.allPoints, 'dsTemp');
   if (core && core.dsTemp >= state.settings.coreLimit) list.push({ level:'critical', title:'Device core above threshold', detail:`${fmt(core.dsTemp)}°C ≥ ${state.settings.coreLimit}°C.` });
   if (state.filteredGaps.length) list.push({ level:'warn', title:`${state.filteredGaps.length} data interruption(s)`, detail:'Review the Events tab for gap timing.' });
-
   const section = $('homeAlertsSection');
   if (!list.length) { section.style.display = 'none'; return; }
   section.style.display = '';
@@ -1367,100 +1541,58 @@ function renderAlerts() {
   $('homeAlerts').innerHTML = list.map(a => `
     <div class="alert ${a.level === 'critical' ? 'critical' : ''}">
       <div class="alert-mark">${a.level === 'critical' ? '!' : '△'}</div>
-      <div>
-        <div class="alert-title">${esc(a.title)}</div>
-        <div class="alert-detail">${esc(a.detail)}</div>
-      </div>
+      <div><div class="alert-title">${esc(a.title)}</div><div class="alert-detail">${esc(a.detail)}</div></div>
     </div>
   `).join('');
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   ROOMS
-   ═══════════════════════════════════════════════════════════════ */
 function renderRooms() {
   const host = $('roomCards');
   if (!host) return;
-
   const bed = latestOf(state.allPoints, 'ahtTemp');
   const liv = latestOf(state.allPoints, 'livingTemp');
   const core = latestOf(state.allPoints, 'dsTemp');
-
   const hEff = relayEfficacy(state.filteredPoints, 'humidifierOn', 'ahtHum');
   const fEff = relayEfficacy(state.filteredPoints, 'fanOn', 'dsTemp');
-
   const tStats = stats(state.filteredPoints.map(p => p.livingTemp));
   const hStats = stats(state.filteredPoints.map(p => p.livingHum));
 
   host.innerHTML = `
     <article class="room-card" data-room="bedroom">
       <div class="room-card-head">
-        <div>
-          <div class="room-card-name">Bedroom · AHT10</div>
-          <div class="room-card-sub">Humidifier response</div>
-        </div>
-        ${latestOf(state.allPoints, 'humidifierOn')?.humidifierOn === true
-          ? '<div class="hero-badge" style="font-size:8px;padding:3px 7px;">ON</div>'
-          : ''}
+        <div><div class="room-card-name">Bedroom · AHT10</div><div class="room-card-sub">Humidifier response</div></div>
+        ${latestOf(state.allPoints, 'humidifierOn')?.humidifierOn === true ? '<div class="hero-badge" style="font-size:8px;padding:3px 7px;">ON</div>' : ''}
       </div>
       <div class="room-readings">
-        <div class="room-reading">
-          <div class="room-reading-label">Temperature</div>
-          <div class="room-reading-value">${fmt(bed?.ahtTemp)}<span class="room-reading-unit">°C</span></div>
-        </div>
-        <div class="room-reading">
-          <div class="room-reading-label">Humidity</div>
-          <div class="room-reading-value">${bed?.ahtHum != null ? fmt(bed.ahtHum,0) : '—'}<span class="room-reading-unit">%</span></div>
-        </div>
+        <div class="room-reading"><div class="room-reading-label">Temperature</div><div class="room-reading-value">${fmt(bed?.ahtTemp)}<span class="room-reading-unit">°C</span></div></div>
+        <div class="room-reading"><div class="room-reading-label">Humidity</div><div class="room-reading-value">${bed?.ahtHum != null ? fmt(bed.ahtHum,0) : '—'}<span class="room-reading-unit">%</span></div></div>
       </div>
       <div class="room-kpis">
         <div class="room-kpi"><div class="room-kpi-label">RH rate · ON</div><div class="room-kpi-value">${hEff.on != null ? (hEff.on >= 0 ? '+' : '') + hEff.on.toFixed(2) + '%/h' : '—'}</div></div>
         <div class="room-kpi"><div class="room-kpi-label">RH rate · OFF</div><div class="room-kpi-value">${hEff.off != null ? (hEff.off >= 0 ? '+' : '') + hEff.off.toFixed(2) + '%/h' : '—'}</div></div>
       </div>
     </article>
-
     <article class="room-card" data-room="living">
       <div class="room-card-head">
-        <div>
-          <div class="room-card-name">Living room · DHT22</div>
-          <div class="room-card-sub">Monitoring only</div>
-        </div>
+        <div><div class="room-card-name">Living room · DHT22</div><div class="room-card-sub">Monitoring only</div></div>
       </div>
       <div class="room-readings">
-        <div class="room-reading">
-          <div class="room-reading-label">Temperature</div>
-          <div class="room-reading-value">${fmt(liv?.livingTemp, 2)}<span class="room-reading-unit">°C</span></div>
-        </div>
-        <div class="room-reading">
-          <div class="room-reading-label">Humidity</div>
-          <div class="room-reading-value">${liv?.livingHum != null ? fmt(liv.livingHum, 2) : '—'}<span class="room-reading-unit">%</span></div>
-        </div>
+        <div class="room-reading"><div class="room-reading-label">Temperature</div><div class="room-reading-value">${fmt(liv?.livingTemp, 2)}<span class="room-reading-unit">°C</span></div></div>
+        <div class="room-reading"><div class="room-reading-label">Humidity</div><div class="room-reading-value">${liv?.livingHum != null ? fmt(liv.livingHum, 2) : '—'}<span class="room-reading-unit">%</span></div></div>
       </div>
       <div class="room-kpis">
         <div class="room-kpi"><div class="room-kpi-label">Avg temp</div><div class="room-kpi-value">${tStats.avg != null ? fmt(tStats.avg,1) + '°C' : '—'}</div></div>
         <div class="room-kpi"><div class="room-kpi-label">Avg RH</div><div class="room-kpi-value">${hStats.avg != null ? fmt(hStats.avg,1) + '%' : '—'}</div></div>
       </div>
     </article>
-
     <article class="room-card" data-room="core">
       <div class="room-card-head">
-        <div>
-          <div class="room-card-name">Internal core · DS18B20</div>
-          <div class="room-card-sub">Fan response</div>
-        </div>
-        ${latestOf(state.allPoints, 'fanOn')?.fanOn === true
-          ? '<div class="hero-badge warn" style="font-size:8px;padding:3px 7px;">FAN ON</div>'
-          : ''}
+        <div><div class="room-card-name">Internal core · DS18B20</div><div class="room-card-sub">Fan response</div></div>
+        ${latestOf(state.allPoints, 'fanOn')?.fanOn === true ? '<div class="hero-badge warn" style="font-size:8px;padding:3px 7px;">FAN ON</div>' : ''}
       </div>
       <div class="room-readings">
-        <div class="room-reading">
-          <div class="room-reading-label">Core temp</div>
-          <div class="room-reading-value">${fmt(core?.dsTemp)}<span class="room-reading-unit">°C</span></div>
-        </div>
-        <div class="room-reading">
-          <div class="room-reading-label">Fan</div>
-          <div class="room-reading-value" style="font-size:15px">${core?.fanOn === true ? 'ON' : core?.fanOn === false ? 'OFF' : '—'}</div>
-        </div>
+        <div class="room-reading"><div class="room-reading-label">Core temp</div><div class="room-reading-value">${fmt(core?.dsTemp)}<span class="room-reading-unit">°C</span></div></div>
+        <div class="room-reading"><div class="room-reading-label">Fan</div><div class="room-reading-value" style="font-size:15px">${core?.fanOn === true ? 'ON' : core?.fanOn === false ? 'OFF' : '—'}</div></div>
       </div>
       <div class="room-kpis">
         <div class="room-kpi"><div class="room-kpi-label">Rate · ON</div><div class="room-kpi-value">${fEff.on != null ? (fEff.on >= 0 ? '+' : '') + fEff.on.toFixed(2) + '°C/h' : '—'}</div></div>
@@ -1472,7 +1604,7 @@ function renderRooms() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SENSORS SCREEN
+   RENDER: sensors
    ═══════════════════════════════════════════════════════════════ */
 function renderSensors() {
   const host = $('sensorList');
@@ -1482,18 +1614,14 @@ function renderSensors() {
     const fresh = freshness(state.allPoints, s.fields);
     const latest = latestOf(state.allPoints, s.primary);
     const val = latest ? latest[s.primary] : null;
-    const valText = formatSensorValue(key, val);
     const st = stats(state.filteredPoints.map(p => p[s.primary]));
     const spark = sparkSVG(state.filteredPoints.slice(-60).map(p => p[s.primary]), s.color, 90, 32);
     const range = st.min != null ? `${formatSensorValue(key, st.min)} – ${formatSensorValue(key, st.max)}` : '—';
     return `
       <button class="sensor-card ${key === state.sensor ? 'selected' : ''}" data-sensor="${key}">
         <div class="sensor-left">
-          <div class="sensor-head">
-            <span class="sensor-dot ${fresh.state}"></span>
-            <span class="sensor-name">${esc(s.name)}</span>
-          </div>
-          <div class="sensor-value">${valText}<span class="sensor-value-unit"> ${esc(s.unit)}</span></div>
+          <div class="sensor-head"><span class="sensor-dot ${fresh.state}"></span><span class="sensor-name">${esc(s.name)}</span></div>
+          <div class="sensor-value">${formatSensorValue(key, val)}<span class="sensor-value-unit"> ${esc(s.unit)}</span></div>
           <div class="sensor-sub">${fresh.point ? `Updated ${formatTime(fresh.point.time)} · ${formatDuration(fresh.age)} ago` : 'No data'}</div>
         </div>
         <div class="sensor-right">
@@ -1503,7 +1631,12 @@ function renderSensors() {
       </button>`;
   }).join('');
   host.querySelectorAll('[data-sensor]').forEach(el => {
-    el.addEventListener('click', () => { state.sensor = el.dataset.sensor; $('chartSensor').value = state.sensor; renderSensors(); openSensorSheet(state.sensor); });
+    el.addEventListener('click', () => {
+      state.sensor = el.dataset.sensor;
+      $('chartSensor').value = state.sensor;
+      renderSensors();
+      openSensorSheet(state.sensor);
+    });
   });
 }
 function formatSensorValue(key, v) {
@@ -1516,23 +1649,23 @@ function formatSensorValue(key, v) {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   CHARTS SCREEN
+   CHART with linear time axis + navigator slider
    ═══════════════════════════════════════════════════════════════ */
 const relayBandPlugin = {
   id: 'relayBand',
   beforeDatasetsDraw(chart, args, opts) {
-    if (!opts?.states || !chart.chartArea) return;
+    if (!opts?.states || !opts?.timestamps || !chart.chartArea) return;
     const { ctx, chartArea, scales: { x } } = chart;
-    const states = opts.states;
+    const states = opts.states, timestamps = opts.timestamps;
     ctx.save();
     ctx.beginPath();
     ctx.rect(chartArea.left, chartArea.top, chartArea.right - chartArea.left, chartArea.bottom - chartArea.top);
     ctx.clip();
     for (let i = 0; i < states.length; i++) {
       if (states[i] !== true) continue;
-      const center = x.getPixelForValue(i);
-      const prev = i === 0 ? chartArea.left : (x.getPixelForValue(i-1) + center)/2;
-      const next = i === states.length-1 ? chartArea.right : (center + x.getPixelForValue(i+1))/2;
+      const center = x.getPixelForValue(timestamps[i]);
+      const prev = i === 0 ? chartArea.left : (x.getPixelForValue(timestamps[i-1]) + center) / 2;
+      const next = i === states.length-1 ? chartArea.right : (center + x.getPixelForValue(timestamps[i+1])) / 2;
       const left = Math.max(chartArea.left, prev), right = Math.min(chartArea.right, next);
       if (right > left) {
         ctx.fillStyle = opts.color || 'rgba(94,224,168,.10)';
@@ -1543,25 +1676,27 @@ const relayBandPlugin = {
   }
 };
 
-function buildChartConfig(key) {
-  const isRelay = key === 'humidifier' || key === 'fan';
-  const s = isRelay ? { primary: key === 'humidifier' ? 'humidifierOn' : 'fanOn', fields:[key === 'humidifier' ? 'humidifierOn' : 'fanOn'] } : SENSORS[key];
-  /* Reduce sample count for mobile, but preserve relay transitions */
+function chartPoints() {
   const maxPoints = 700;
   const step = Math.max(1, Math.ceil(state.filteredPoints.length / maxPoints));
-  const chartPoints = state.filteredPoints.filter((p, i) => i % step === 0 || i === state.filteredPoints.length-1
-    || (i > 0 && (p.humidifierOn !== state.filteredPoints[i-1].humidifierOn || p.fanOn !== state.filteredPoints[i-1].fanOn)));
+  return state.filteredPoints.filter((p, i) =>
+    i % step === 0 || i === state.filteredPoints.length-1 ||
+    (i > 0 && (p.humidifierOn !== state.filteredPoints[i-1].humidifierOn || p.fanOn !== state.filteredPoints[i-1].fanOn))
+  );
+}
 
-  const labels = chartPoints.map(p => {
-    const needDate = state.range !== 'today' && state.range !== 'yesterday';
-    return needDate ? p.time.toLocaleString([], { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : formatTime(p.time);
-  });
+function buildChartConfig(key, points) {
+  const isRelay = key === 'humidifier' || key === 'fan';
+  const def = isRelay
+    ? { primary: key === 'humidifier' ? 'humidifierOn' : 'fanOn', fields:[key === 'humidifier' ? 'humidifierOn' : 'fanOn'] }
+    : SENSORS[key];
 
   const datasets = [];
   const make = (label, field, color, axis='y') => ({
-    label, data: chartPoints.map(p => p[field]),
+    label,
+    data: points.map(p => ({ x: p.time.getTime(), y: p[field] })),
     borderColor: color, backgroundColor: color + '20',
-    fill: false, tension: 0.28, pointRadius: 0, pointHoverRadius: 4,
+    fill: false, tension: 0.28, pointRadius: 0, pointHoverRadius: 5,
     borderWidth: 2, spanGaps: false, yAxisID: axis
   });
 
@@ -1579,10 +1714,10 @@ function buildChartConfig(key) {
     const color = key === 'humidifier' ? '#5ee0a8' : '#f7be6a';
     datasets.push({
       label: '1 = ON · 0 = OFF',
-      data: chartPoints.map(p => p[field] == null ? null : p[field] ? 1 : 0),
+      data: points.map(p => ({ x: p.time.getTime(), y: p[field] == null ? null : p[field] ? 1 : 0 })),
       borderColor: color, backgroundColor: color + '22',
       stepped: 'before', fill: true, tension: 0,
-      pointRadius: 0, pointHoverRadius: 4, borderWidth: 2, spanGaps: false
+      pointRadius: 0, pointHoverRadius: 5, borderWidth: 2, spanGaps: false
     });
   } else if (key === 'rain') {
     datasets.push({ ...make('Rain %', 'rainDensity', '#5bd7ef'), stepped: 'middle', fill: true });
@@ -1591,8 +1726,6 @@ function buildChartConfig(key) {
   } else if (key === 'bmp') {
     datasets.push(make('Pressure hPa', 'pressure', '#b5a0ff'));
     datasets.push(make('Altitude m', 'altitude', '#ed82c1', 'y1'));
-  } else if (key === 'radar') {
-    datasets.push({ ...make('Presence cm', 'radar', '#f7be6a'), pointRadius: 2, showLine: false });
   } else if (key === 'sound') {
     datasets.push({ ...make('Sound dBFS', 'sound', '#ed82c1'), stepped: 'middle' });
   } else if (key === 'lux') {
@@ -1600,66 +1733,337 @@ function buildChartConfig(key) {
   }
 
   const scales = {
-    x: { grid:{ color:'rgba(132,150,173,.06)' }, ticks:{ color:'#8496ad', maxTicksLimit:6, maxRotation:0, font:{size:9} } },
-    y: { grid:{ color:'rgba(132,150,173,.08)' }, ticks:{ color:'#8496ad', font:{size:9} } }
+    x: {
+      type: 'linear',
+      min: state.chartZoom.start,
+      max: state.chartZoom.end,
+      grid: { color: 'rgba(132,150,173,.06)' },
+      ticks: {
+        color: '#8496ad', maxTicksLimit: 6, maxRotation: 0, font: { size: 9 },
+        callback: (v) => {
+          const d = new Date(v);
+          const span = state.chartZoom.end - state.chartZoom.start;
+          if (span < 6 * 3600 * 1000) return formatTime(d);
+          if (span < 3 * 24 * 3600 * 1000) return d.toLocaleString([], { day: '2-digit', month: 'short', hour: '2-digit' });
+          return d.toLocaleDateString([], { day: '2-digit', month: 'short' });
+        }
+      }
+    },
+    y: {
+      grid: { color: 'rgba(132,150,173,.08)' },
+      ticks: { color: '#8496ad', font: { size: 9 } }
+    }
   };
   if (['aht10','dht22','dht11','bmp'].includes(key)) {
-    scales.y1 = { position:'right', grid:{ drawOnChartArea:false }, ticks:{ color:'#8496ad', font:{size:9} } };
+    scales.y1 = { position: 'right', grid: { drawOnChartArea: false }, ticks: { color: '#8496ad', font: { size: 9 } } };
   }
   if (key === 'rain') { scales.y.min = 0; scales.y.max = 100; }
   if (key === 'sound') { scales.y.min = -120; scales.y.max = 0; }
-  if (key === 'radar') { scales.y.reverse = true; scales.y.min = 0; }
-  if (isRelay) { scales.y.min = 0; scales.y.max = 1; scales.y.ticks.stepSize = 1; scales.y.ticks.callback = v => v === 1 ? 'ON' : 'OFF'; }
+  if (isRelay) {
+    scales.y.min = 0; scales.y.max = 1;
+    scales.y.ticks = { color: '#8496ad', stepSize: 1, font: { size: 9 }, callback: v => v === 1 ? 'ON' : 'OFF' };
+  }
 
   const bandField = key === 'aht10' ? 'humidifierOn' : key === 'ds' ? 'fanOn' : null;
 
   return {
     type: 'line',
-    data: { labels, datasets },
+    data: { datasets },
     plugins: [relayBandPlugin],
     options: {
       responsive: true, maintainAspectRatio: false, animation: false,
-      interaction: { mode:'index', intersect:false },
+      interaction: { mode: 'index', intersect: false },
       plugins: {
-        relayBand: bandField ? { states: chartPoints.map(p => p[bandField]), color: key === 'aht10' ? 'rgba(94,224,168,.10)' : 'rgba(247,190,106,.12)' } : { states: [] },
-        legend: { display: datasets.length > 1, labels: { color:'#b9c8da', boxWidth:10, boxHeight:10, font:{size:10} } },
+        relayBand: bandField ? {
+          states: points.map(p => p[bandField]),
+          timestamps: points.map(p => p.time.getTime()),
+          color: key === 'aht10' ? 'rgba(94,224,168,.10)' : 'rgba(247,190,106,.12)'
+        } : { states: [] },
+        legend: { display: datasets.length > 1, labels: { color: '#b9c8da', boxWidth: 10, boxHeight: 10, font: { size: 10 } } },
         tooltip: {
           backgroundColor: '#16243a', borderColor: 'rgba(255,255,255,.12)', borderWidth: 1,
-          titleColor: '#eef4fb', bodyColor: '#b9c8da', padding: 10, cornerRadius: 10
+          titleColor: '#eef4fb', bodyColor: '#b9c8da', padding: 12, cornerRadius: 12,
+          titleFont: { size: 12 }, bodyFont: { size: 12 }
         },
         zoom: {
-          limits: { x: { min: 0, max: Math.max(0, labels.length - 1) } },
-          pan: { enabled: true, mode: 'x' },
-          zoom: { wheel: { enabled: false }, pinch: { enabled: true }, mode: 'x' }
+          limits: {
+            x: {
+              min: state.chartFullRange.start,
+              max: state.chartFullRange.end,
+              minRange: Math.min(60000, (state.chartFullRange.end - state.chartFullRange.start))
+            }
+          },
+          pan: {
+            enabled: true, mode: 'x',
+            onPanComplete: ({ chart }) => {
+              state.chartZoom = { start: chart.scales.x.min, end: chart.scales.x.max };
+              updateNavigatorWindow();
+            }
+          },
+          zoom: {
+            wheel: { enabled: false },
+            pinch: { enabled: true },
+            mode: 'x',
+            onZoomComplete: ({ chart }) => {
+              state.chartZoom = { start: chart.scales.x.min, end: chart.scales.x.max };
+              updateNavigatorWindow();
+            }
+          }
         }
       },
       scales
     }
   };
 }
-function renderCharts() {
-  if (state.chart) { state.chart.destroy(); state.chart = null; }
+
+function renderChart() {
+  const isPresence = state.sensor === 'radar';
+  $('standardChartView').classList.toggle('hidden', isPresence);
+  $('presenceView').classList.toggle('hidden', !isPresence);
+
+  if (isPresence) {
+    if (state.chart) { state.chart.destroy(); state.chart = null; }
+    renderPresenceView();
+    return;
+  }
+
   const canvas = $('mainChart');
   if (!canvas || typeof Chart === 'undefined') return;
+  const points = chartPoints();
+  if (!points.length) {
+    if (state.chart) { state.chart.destroy(); state.chart = null; }
+    $('chartLegend').textContent = 'No data in the selected time range.';
+    $('chartStats').innerHTML = '';
+    return;
+  }
+
+  state.chartFullRange = { start: points[0].time.getTime(), end: points[points.length-1].time.getTime() };
+  const fullSpan = state.chartFullRange.end - state.chartFullRange.start;
+
+  if (!state.chartZoom) {
+    const defaultMs = Math.min(fullSpan, state.settings.chartDefaultHours * 3600 * 1000);
+    state.chartZoom = {
+      start: state.chartFullRange.end - defaultMs,
+      end: state.chartFullRange.end
+    };
+    if (state.chartZoom.start < state.chartFullRange.start) state.chartZoom.start = state.chartFullRange.start;
+  } else {
+    // Clamp to new full range
+    state.chartZoom.start = Math.max(state.chartFullRange.start, Math.min(state.chartZoom.start, state.chartFullRange.end - 60000));
+    state.chartZoom.end = Math.min(state.chartFullRange.end, Math.max(state.chartZoom.end, state.chartZoom.start + 60000));
+  }
+
+  if (state.chart) { state.chart.destroy(); state.chart = null; }
+  const cfg = buildChartConfig(state.sensor, points);
+  try {
+    state.chart = new Chart(canvas.getContext('2d'), cfg);
+  } catch (e) {
+    console.warn('Chart error:', e);
+    return;
+  }
+
+  // Legends
+  if (state.sensor === 'aht10') $('chartLegend').textContent = 'Shaded green = humidifier ON';
+  else if (state.sensor === 'ds') $('chartLegend').textContent = 'Shaded amber = fan ON';
+  else if (state.sensor === 'humidifier' || state.sensor === 'fan') $('chartLegend').textContent = 'Relay chart · 1 = ON, 0 = OFF';
+  else $('chartLegend').textContent = 'Values from recorded packets · gaps break the line';
+  $('navHint').textContent = fullSpan > 3600000
+    ? `Drag slider to pan · window = ${formatDuration((state.chartZoom.end - state.chartZoom.start)/60000)}`
+    : 'Whole range is visible';
+
+  updateNavSpark();
+  updateNavigatorWindow();
+  renderChartStats();
+}
+
+function updateNavSpark() {
+  const path = $('navPath');
+  if (!path || !state.chartFullRange) { if (path) path.setAttribute('d', ''); return; }
+  const sensor = state.sensor;
+  const field = sensor === 'humidifier' ? 'humidifierOn' : sensor === 'fan' ? 'fanOn' : SENSORS[sensor]?.primary;
+  if (!field) { path.setAttribute('d', ''); return; }
+  const points = state.filteredPoints;
+  const fullStart = state.chartFullRange.start;
+  const fullSpan = state.chartFullRange.end - fullStart || 1;
+  const w = 400, h = 46, pad = 4;
+
+  const rawValues = points.map(p => {
+    const v = p[field];
+    if (v === true) return 1;
+    if (v === false) return 0;
+    if (v == null || !Number.isFinite(v)) return null;
+    return v;
+  });
+  const valid = rawValues.filter(v => v != null);
+  if (valid.length < 2) { path.setAttribute('d', ''); return; }
+  const min = Math.min(...valid), max = Math.max(...valid);
+  const range = max - min || 1;
+
+  let d = '';
+  let penDown = false;
+  let prevTs = -Infinity;
+  for (let i = 0; i < points.length; i++) {
+    const v = rawValues[i];
+    if (v == null) { penDown = false; continue; }
+    const x = ((points[i].time.getTime() - fullStart) / fullSpan) * w;
+    const y = h - pad - ((v - min) / range) * (h - pad * 2);
+    if (!penDown || (points[i].time.getTime() - prevTs) > state.settings.gapMinutes * 60000) {
+      d += `M${x.toFixed(1)},${y.toFixed(1)} `;
+      penDown = true;
+    } else {
+      d += `L${x.toFixed(1)},${y.toFixed(1)} `;
+    }
+    prevTs = points[i].time.getTime();
+  }
+  path.setAttribute('d', d);
+}
+
+function updateNavigatorWindow() {
+  const win = $('navWindow');
+  if (!win || !state.chartFullRange || !state.chartZoom) return;
+  const fullSpan = state.chartFullRange.end - state.chartFullRange.start || 1;
+  const left = ((state.chartZoom.start - state.chartFullRange.start) / fullSpan) * 100;
+  const right = ((state.chartZoom.end - state.chartFullRange.start) / fullSpan) * 100;
+  win.style.left = Math.max(0, left) + '%';
+  win.style.width = Math.max(2, right - left) + '%';
+}
+
+function applyChartZoom() {
+  if (!state.chart) return;
+  try {
+    state.chart.zoomScale('x', { min: state.chartZoom.start, max: state.chartZoom.end });
+  } catch (e) {
+    state.chart.options.scales.x.min = state.chartZoom.start;
+    state.chart.options.scales.x.max = state.chartZoom.end;
+    state.chart.update('none');
+  }
+}
+
+function clampZoom() {
+  if (!state.chartFullRange) return;
+  const fullSpan = state.chartFullRange.end - state.chartFullRange.start;
+  let span = state.chartZoom.end - state.chartZoom.start;
+  const minSpan = Math.min(60000, fullSpan);
+  if (span > fullSpan) span = fullSpan;
+  if (span < minSpan) span = minSpan;
+  const center = (state.chartZoom.start + state.chartZoom.end) / 2;
+  let newStart = center - span / 2;
+  let newEnd = center + span / 2;
+  if (newStart < state.chartFullRange.start) { newStart = state.chartFullRange.start; newEnd = newStart + span; }
+  if (newEnd > state.chartFullRange.end) { newEnd = state.chartFullRange.end; newStart = newEnd - span; }
+  state.chartZoom = { start: newStart, end: newEnd };
+}
+
+function zoomIn() {
+  if (!state.chartFullRange) return;
+  const span = state.chartZoom.end - state.chartZoom.start;
+  const center = (state.chartZoom.start + state.chartZoom.end) / 2;
+  const newSpan = Math.max(60000, span * 0.5);
+  state.chartZoom = { start: center - newSpan / 2, end: center + newSpan / 2 };
+  clampZoom();
+  applyChartZoom();
+  updateNavigatorWindow();
+}
+function zoomOut() {
+  if (!state.chartFullRange) return;
+  const span = state.chartZoom.end - state.chartZoom.start;
+  const center = (state.chartZoom.start + state.chartZoom.end) / 2;
+  const newSpan = span * 2;
+  state.chartZoom = { start: center - newSpan / 2, end: center + newSpan / 2 };
+  clampZoom();
+  applyChartZoom();
+  updateNavigatorWindow();
+}
+function zoomFit() {
+  if (!state.chartFullRange) return;
+  state.chartZoom = { ...state.chartFullRange };
+  applyChartZoom();
+  updateNavigatorWindow();
+}
+
+function initNavigator() {
+  const nav = $('navigator');
+  if (!nav) return;
+  let drag = null;
+
+  const onPointerDown = (e) => {
+    if (!state.chartFullRange || !state.chartZoom) return;
+    const rect = nav.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const width = rect.width;
+    const fullSpan = state.chartFullRange.end - state.chartFullRange.start || 1;
+    const viewLeftPx = ((state.chartZoom.start - state.chartFullRange.start) / fullSpan) * width;
+    const viewRightPx = ((state.chartZoom.end - state.chartFullRange.start) / fullSpan) * width;
+    const HANDLE = 22;
+    if (Math.abs(x - viewLeftPx) < HANDLE) {
+      drag = { mode: 'left', startX: x, s0: state.chartZoom.start, e0: state.chartZoom.end, width };
+    } else if (Math.abs(x - viewRightPx) < HANDLE) {
+      drag = { mode: 'right', startX: x, s0: state.chartZoom.start, e0: state.chartZoom.end, width };
+    } else if (x > viewLeftPx && x < viewRightPx) {
+      drag = { mode: 'pan', startX: x, s0: state.chartZoom.start, e0: state.chartZoom.end, width };
+    } else {
+      // Tap outside — center window on tap
+      const span = state.chartZoom.end - state.chartZoom.start;
+      const targetCenter = state.chartFullRange.start + (x / width) * fullSpan;
+      let ns = targetCenter - span / 2, ne = targetCenter + span / 2;
+      if (ns < state.chartFullRange.start) { ns = state.chartFullRange.start; ne = ns + span; }
+      if (ne > state.chartFullRange.end) { ne = state.chartFullRange.end; ns = ne - span; }
+      state.chartZoom = { start: ns, end: ne };
+      applyChartZoom();
+      updateNavigatorWindow();
+      return;
+    }
+    nav.setPointerCapture(e.pointerId);
+    e.preventDefault();
+  };
+
+  const onPointerMove = (e) => {
+    if (!drag) return;
+    const rect = nav.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const dx = x - drag.startX;
+    const fullSpan = state.chartFullRange.end - state.chartFullRange.start || 1;
+    const dt = (dx / drag.width) * fullSpan;
+    const MIN_SPAN = Math.min(60000, fullSpan);
+
+    if (drag.mode === 'left') {
+      let s = drag.s0 + dt;
+      if (s < state.chartFullRange.start) s = state.chartFullRange.start;
+      if (s > state.chartZoom.end - MIN_SPAN) s = state.chartZoom.end - MIN_SPAN;
+      state.chartZoom.start = s;
+    } else if (drag.mode === 'right') {
+      let en = drag.e0 + dt;
+      if (en > state.chartFullRange.end) en = state.chartFullRange.end;
+      if (en < state.chartZoom.start + MIN_SPAN) en = state.chartZoom.start + MIN_SPAN;
+      state.chartZoom.end = en;
+    } else if (drag.mode === 'pan') {
+      const span = drag.e0 - drag.s0;
+      let s = drag.s0 + dt, en = drag.e0 + dt;
+      if (s < state.chartFullRange.start) { s = state.chartFullRange.start; en = s + span; }
+      if (en > state.chartFullRange.end) { en = state.chartFullRange.end; s = en - span; }
+      state.chartZoom.start = s;
+      state.chartZoom.end = en;
+    }
+    applyChartZoom();
+    updateNavigatorWindow();
+  };
+
+  const onPointerUp = () => { drag = null; };
+
+  nav.addEventListener('pointerdown', onPointerDown);
+  nav.addEventListener('pointermove', onPointerMove);
+  nav.addEventListener('pointerup', onPointerUp);
+  nav.addEventListener('pointercancel', onPointerUp);
+}
+
+function renderChartStats() {
   const key = state.sensor;
-  const def = key === 'humidifier' || key === 'fan' ? RELAYS[key] : SENSORS[key];
-  const cfg = buildChartConfig(key);
-  try { state.chart = new Chart(canvas.getContext('2d'), cfg); } catch (e) { console.warn('Chart error', e); }
-
-  /* Legend */
-  if (key === 'aht10') $('chartLegend').textContent = 'Shaded green intervals = humidifier relay ON.';
-  else if (key === 'ds') $('chartLegend').textContent = 'Shaded amber intervals = internal fan relay ON.';
-  else if (key === 'humidifier' || key === 'fan') $('chartLegend').textContent = 'Relay chart · 1 = ON, 0 = OFF.';
-  else $('chartLegend').textContent = 'Values from recorded packets · gaps = missing readings.';
-
-  /* Stats */
-  const fields = key === 'humidifier' ? ['humidifierOn'] : key === 'fan' ? ['fanOn'] : SENSORS[key].fields;
-  const primary = key === 'humidifier' ? 'humidifierOn' : key === 'fan' ? 'fanOn' : SENSORS[key].primary;
+  const isRelay = key === 'humidifier' || key === 'fan';
+  const primary = isRelay ? (key === 'humidifier' ? 'humidifierOn' : 'fanOn') : SENSORS[key].primary;
   const statData = stats(state.filteredPoints.map(p => p[primary]));
   const latest = latestOf(state.allPoints, primary);
   const val = latest ? latest[primary] : null;
-  const isRelay = key === 'humidifier' || key === 'fan';
-  const disp = v => isRelay ? (v ? 'ON' : 'OFF') : formatSensorValue(key, v);
+  const disp = v => isRelay ? (v === true ? 'ON' : v === false ? 'OFF' : '—') : formatSensorValue(key, v);
   $('chartStats').innerHTML = `
     <div class="stat-box"><div class="stat-box-label">Latest</div><div class="stat-box-value">${disp(val)}</div></div>
     <div class="stat-box"><div class="stat-box-label">Min</div><div class="stat-box-value">${disp(statData.min)}</div></div>
@@ -1669,7 +2073,53 @@ function renderCharts() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   EVENTS SCREEN
+   Presence view
+   ═══════════════════════════════════════════════════════════════ */
+function renderPresenceView() {
+  const latest = latestOf(state.allPoints, 'radar');
+  const dist = latest?.radar;
+  const MAX_CM = 400;
+  const dot = $('presenceDot');
+  const pulse = $('presencePulse');
+  const distEl = $('presenceDistance');
+  const statusEl = $('presenceStatus');
+
+  if (dist != null && dist > 0 && dist < MAX_CM) {
+    const r = (dist / MAX_CM) * 80;
+    const cx = 100, cy = 100 - r;
+    dot.setAttribute('cx', cx); dot.setAttribute('cy', cy);
+    dot.setAttribute('opacity', '1');
+    pulse.setAttribute('cx', cx); pulse.setAttribute('cy', cy);
+    pulse.setAttribute('opacity', '.4');
+    distEl.textContent = Math.round(dist) + ' cm';
+    distEl.style.color = dist < 100 ? 'var(--amber)' : 'var(--cyan)';
+    statusEl.textContent = 'Target detected';
+    statusEl.style.color = 'var(--green)';
+  } else {
+    dot.setAttribute('opacity', '0');
+    pulse.setAttribute('opacity', '0');
+    distEl.textContent = '—';
+    distEl.style.color = 'var(--muted)';
+    statusEl.textContent = dist === 0 ? 'Clear — no target' : 'No data';
+    statusEl.style.color = 'var(--muted)';
+  }
+
+  // History sparkline
+  const vals = state.filteredPoints.slice(-60).map(p => p.radar);
+  $('presenceHistory').innerHTML = sparkSVG(vals, 'var(--amber)', 350, 52) || '<div class="empty-state" style="padding:12px;">No history</div>';
+
+  // Stats
+  const st = stats(state.filteredPoints.map(p => p.radar));
+  $('presenceStats').innerHTML = `
+    <div class="stat-box"><div class="stat-box-label">Min</div><div class="stat-box-value">${st.min != null ? Math.round(st.min) + 'cm' : '—'}</div></div>
+    <div class="stat-box"><div class="stat-box-label">Max</div><div class="stat-box-value">${st.max != null ? Math.round(st.max) + 'cm' : '—'}</div></div>
+    <div class="stat-box"><div class="stat-box-label">Avg</div><div class="stat-box-value">${st.avg != null ? Math.round(st.avg) + 'cm' : '—'}</div></div>
+    <div class="stat-box"><div class="stat-box-label">Samples</div><div class="stat-box-value">${st.n}</div></div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER: events
    ═══════════════════════════════════════════════════════════════ */
 function buildRelayEvents(points, field) {
   const events = []; let current = null;
@@ -1766,7 +2216,7 @@ function renderEvents() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   TAB / SCREEN SWITCHING
+   TABS
    ═══════════════════════════════════════════════════════════════ */
 function switchTab(tab) {
   if (state.tab === tab) return;
@@ -1775,13 +2225,14 @@ function switchTab(tab) {
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
   const screen = $('screen-' + tab);
   if (screen) { screen.classList.add('active'); window.scrollTo({ top: 0, behavior: 'instant' }); }
-  if (tab === 'charts') requestAnimationFrame(() => renderCharts());
+  if (tab === 'charts') requestAnimationFrame(() => renderChart());
   if (tab === 'events') renderEvents();
   if (tab === 'sensors') renderSensors();
+  if (tab === 'more') updateNotifUI();
 }
 
 /* ═══════════════════════════════════════════════════════════════
-   SHEETS (modals)
+   SHEETS
    ═══════════════════════════════════════════════════════════════ */
 function openSheet(html) {
   $('sheetBody').innerHTML = html;
@@ -1816,46 +2267,24 @@ function openSensorSheet(key) {
     <button class="sheet-close" onclick="closeSheet()">✕</button>
     <div class="sheet-title">${esc(s.name)}</div>
     <div class="sheet-desc">Current value, statistics for the selected window, and the last 120 samples.</div>
-
     <div style="text-align:center; padding: 18px 0 24px;">
-      <div style="font: 500 54px 'DM Mono', monospace; letter-spacing: -.06em; line-height: 1;">
-        ${formatSensorValue(key, latest?.[s.primary])}
-      </div>
+      <div style="font: 500 54px 'DM Mono', monospace; letter-spacing: -.06em; line-height: 1;">${formatSensorValue(key, latest?.[s.primary])}</div>
       <div style="font-size: 14px; color: var(--muted); margin-top: 6px;">${esc(s.unit)}</div>
-      <div style="margin-top: 12px; font-size: 11px; color: ${fresh.state === 'on' ? 'var(--green)' : fresh.state === 'warn' ? 'var(--amber)' : 'var(--red)'};">
-        ${fresh.label}${fresh.age != null ? ' · ' + formatDuration(fresh.age) + ' ago' : ''}
-      </div>
+      <div style="margin-top: 12px; font-size: 11px; color: ${fresh.state === 'on' ? 'var(--green)' : fresh.state === 'warn' ? 'var(--amber)' : 'var(--red)'};">${fresh.label}${fresh.age != null ? ' · ' + formatDuration(fresh.age) + ' ago' : ''}</div>
     </div>
-
     <div class="chart-panel" style="margin: 0 0 14px;">
-      <div class="chart-container" style="height: 140px;">
-        ${sparkSVG(values, s.color, 350, 120)}
-      </div>
+      <div style="height: 140px;">${sparkSVG(values, s.color, 350, 140)}</div>
     </div>
-
     <div class="stat-grid" style="margin-bottom: 14px;">
       <div class="stat-box"><div class="stat-box-label">Min</div><div class="stat-box-value">${formatSensorValue(key, st.min)}</div></div>
       <div class="stat-box"><div class="stat-box-label">Max</div><div class="stat-box-value">${formatSensorValue(key, st.max)}</div></div>
       <div class="stat-box"><div class="stat-box-label">Avg</div><div class="stat-box-value">${formatSensorValue(key, st.avg)}</div></div>
       <div class="stat-box"><div class="stat-box-label">Samples</div><div class="stat-box-value">${st.n}</div></div>
     </div>
-
-    ${extra.length ? `
-      <div class="more-list">
-        ${extra.map(([k, v]) => `
-          <div class="more-item" style="cursor: default;">
-            <div class="more-text">
-              <div class="more-title" style="font-size: 12px;">${esc(k)}</div>
-            </div>
-            <div class="mono" style="color: var(--text-2); font-size: 13px;">${esc(v)}</div>
-          </div>
-        `).join('')}
-      </div>
-    ` : ''}
-
-    <button class="btn full" style="margin-top: 16px;" onclick="closeSheet(); switchTab('charts'); document.getElementById('chartSensor').value='${key}'; state.sensor='${key}'; renderCharts();">
-      View full chart
-    </button>
+    ${extra.length ? `<div class="more-list" style="margin-bottom:14px;">
+      ${extra.map(([k, v]) => `<div class="more-item" style="cursor: default;"><div class="more-text"><div class="more-title" style="font-size:12px;">${esc(k)}</div></div><div class="mono" style="color:var(--text-2);font-size:13px;">${esc(v)}</div></div>`).join('')}
+    </div>` : ''}
+    <button class="btn primary full" onclick="closeSheet(); state.sensor='${key}'; document.getElementById('chartSensor').value='${key}'; switchTab('charts'); renderChart();">View full chart</button>
   `);
 }
 
@@ -1865,64 +2294,68 @@ function openRoomSheet(room) {
   const fEff = relayEfficacy(state.filteredPoints, 'fanOn', 'dsTemp');
   const hEvents = buildRelayEvents(state.filteredPoints, 'humidifierOn');
   const fEvents = buildRelayEvents(state.filteredPoints, 'fanOn');
-
   let body = '';
   if (room === 'bedroom') {
     body = `
-      <div class="sheet-desc">Humidifier relay response analysis. Rate of humidity change is measured between consecutive packets.</div>
-      <div class="stat-grid" style="margin-bottom: 14px;">
+      <div class="sheet-desc">Humidifier relay response. Rate of humidity change is measured between consecutive packets.</div>
+      <div class="stat-grid" style="margin-bottom:14px;">
         <div class="stat-box"><div class="stat-box-label">ON periods</div><div class="stat-box-value">${hEvents.length}</div></div>
         <div class="stat-box"><div class="stat-box-label">Total ON</div><div class="stat-box-value">${formatDuration(hEvents.reduce((s, e) => s + (e.duration || 0), 0))}</div></div>
         <div class="stat-box"><div class="stat-box-label">RH ON</div><div class="stat-box-value">${hEff.on != null ? (hEff.on >= 0 ? '+' : '') + hEff.on.toFixed(2) : '—'}</div></div>
         <div class="stat-box"><div class="stat-box-label">RH OFF</div><div class="stat-box-value">${hEff.off != null ? (hEff.off >= 0 ? '+' : '') + hEff.off.toFixed(2) : '—'}</div></div>
-      </div>
-      <div class="insight">
-        <div class="insight-icon violet">◈</div>
-        <div class="insight-body">
-          <div class="insight-title">Efficacy comparison</div>
-          <div class="insight-detail">When the humidifier is ON, humidity changes ${hEff.on != null ? hEff.on.toFixed(2) : '—'}%/hr on average, versus ${hEff.off != null ? hEff.off.toFixed(2) : '—'}%/hr when OFF. Positive difference means the humidifier is doing its job.</div>
-        </div>
-      </div>
-    `;
+      </div>`;
   } else if (room === 'living') {
     const t = stats(state.filteredPoints.map(p => p.livingTemp));
     const h = stats(state.filteredPoints.map(p => p.livingHum));
     body = `
       <div class="sheet-desc">Independent monitoring — does not control the humidifier.</div>
-      <div class="stat-grid" style="margin-bottom: 14px;">
+      <div class="stat-grid" style="margin-bottom:14px;">
         <div class="stat-box"><div class="stat-box-label">T min</div><div class="stat-box-value">${fmt(t.min, 1)}</div></div>
         <div class="stat-box"><div class="stat-box-label">T max</div><div class="stat-box-value">${fmt(t.max, 1)}</div></div>
         <div class="stat-box"><div class="stat-box-label">RH min</div><div class="stat-box-value">${fmt(h.min, 1)}</div></div>
         <div class="stat-box"><div class="stat-box-label">RH max</div><div class="stat-box-value">${fmt(h.max, 1)}</div></div>
-      </div>
-    `;
+      </div>`;
   } else {
     body = `
       <div class="sheet-desc">Fan relay response. Rate of core temperature change ON vs OFF.</div>
-      <div class="stat-grid" style="margin-bottom: 14px;">
+      <div class="stat-grid" style="margin-bottom:14px;">
         <div class="stat-box"><div class="stat-box-label">ON periods</div><div class="stat-box-value">${fEvents.length}</div></div>
         <div class="stat-box"><div class="stat-box-label">Total ON</div><div class="stat-box-value">${formatDuration(fEvents.reduce((s, e) => s + (e.duration || 0), 0))}</div></div>
         <div class="stat-box"><div class="stat-box-label">Rate ON</div><div class="stat-box-value">${fEff.on != null ? (fEff.on >= 0 ? '+' : '') + fEff.on.toFixed(2) : '—'}</div></div>
         <div class="stat-box"><div class="stat-box-label">Rate OFF</div><div class="stat-box-value">${fEff.off != null ? (fEff.off >= 0 ? '+' : '') + fEff.off.toFixed(2) : '—'}</div></div>
-      </div>
-      <div class="insight">
-        <div class="insight-icon ${fEff.on != null && fEff.off != null && fEff.on < fEff.off ? 'good' : 'warn'}">⌬</div>
-        <div class="insight-body">
-          <div class="insight-title">Cooling effectiveness</div>
-          <div class="insight-detail">${fEff.on != null && fEff.off != null
-            ? (fEff.on < fEff.off
-              ? `Fan slows the core temperature rise by ${Math.abs(fEff.off - fEff.on).toFixed(2)}°C/hr.`
-              : `Fan impact is ${fEff.on > fEff.off ? 'small' : 'negligible'} on this window (rate ${fEff.on.toFixed(2)} ON vs ${fEff.off.toFixed(2)} OFF °C/hr).`)
-            : 'Not enough data to calculate.'}</div>
-        </div>
-      </div>
-    `;
+      </div>`;
   }
-
   openSheet(`
     <button class="sheet-close" onclick="closeSheet()">✕</button>
     <div class="sheet-title">${esc(names[room])}</div>
     ${body}
+  `);
+}
+
+function openNotifsSheet() {
+  const perm = ('Notification' in window) ? Notification.permission : 'unsupported';
+  const isPWA = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+  let note = '';
+  if (perm === 'granted') note = 'Notifications are enabled. You will be alerted about rain, humidifier and fan changes on each sync.';
+  else if (perm === 'denied') note = 'Notifications are blocked. Open iOS Settings → Notifications → Smart Home to allow them.';
+  else if (perm === 'unsupported') note = 'This browser doesn\'t support notifications.';
+  else note = 'Tap to enable. On iPhone this requires adding to Home Screen first (Share → Add to Home Screen) and iOS 16.4+.';
+
+  openSheet(`
+    <button class="sheet-close" onclick="closeSheet()">✕</button>
+    <div class="sheet-title">Notifications</div>
+    <div class="sheet-desc">${esc(note)}</div>
+    <div class="more-list" style="margin-bottom:14px;">
+      <div class="more-item" style="cursor:default;"><div class="more-icon ${perm === 'granted' ? 'green' : 'amber'}">${perm === 'granted' ? '✓' : '🔔'}</div><div class="more-text"><div class="more-title">Permission</div><div class="more-sub">${esc(perm.toUpperCase())}</div></div></div>
+      <div class="more-item" style="cursor:default;"><div class="more-icon violet">◈</div><div class="more-text"><div class="more-title">Rain start / stop</div><div class="more-sub">Fires when rainCode changes</div></div></div>
+      <div class="more-item" style="cursor:default;"><div class="more-icon pink">💧</div><div class="more-text"><div class="more-title">Humidifier ON / OFF</div><div class="more-sub">Fires when relay changes</div></div></div>
+      <div class="more-item" style="cursor:default;"><div class="more-icon amber">🌀</div><div class="more-text"><div class="more-title">Fan ON / OFF</div><div class="more-sub">Fires when relay changes</div></div></div>
+    </div>
+    ${perm === 'default' ? '<button class="btn primary full" onclick="requestNotificationPermission()">Enable notifications</button>' : ''}
+    ${perm === 'granted' ? '<button class="btn full" onclick="fireNotification(\'Test\', \'Notification test worked\', \'test\');closeSheet();">Send test notification</button>' : ''}
+    ${isIOS && !isPWA ? '<div style="margin-top:12px; font-size:11px; color:var(--amber); text-align:center; line-height:1.5;">On iOS, notifications require the app to be installed: tap Share → Add to Home Screen, then open from there.</div>' : ''}
+    ${state.transitions.length ? `<div style="margin-top:16px;"><div class="section-title" style="font-size:12px;margin-bottom:8px;">Recent detected</div><div class="event-list">${state.transitions.slice(-6).reverse().map(t => `<div class="event"><div class="event-icon ${t.type === 'rain-start' ? 'rain' : t.type === 'rain-end' ? '' : t.type === 'humidifier' ? '' : 'warn'}">${t.type === 'rain-start' ? '🌧' : t.type === 'rain-end' ? '☀' : t.type === 'humidifier' ? '💧' : '🌀'}</div><div class="event-body"><div class="event-title">${esc(t.title)}</div><div class="event-detail">${esc(t.body)}</div></div></div>`).join('')}</div></div>` : ''}
   `);
 }
 
@@ -1931,7 +2364,7 @@ function openSettingsSheet() {
   openSheet(`
     <button class="sheet-close" onclick="closeSheet()">✕</button>
     <div class="sheet-title">System settings</div>
-    <div class="sheet-desc">These are stored locally in this browser. The API token unlocks private health records, device config and command queues.</div>
+    <div class="sheet-desc">Stored locally. The API token unlocks private health records, device config and command queues.</div>
     <div class="field-group">
       <div class="field-row"><label>Core temperature warning (°C)</label><input id="setCore" type="number" value="${s.coreLimit}" /></div>
       <div class="field-row"><label>Indoor temperature warning (°C)</label><input id="setIndoorTemp" type="number" value="${s.indoorTempMax}" /></div>
@@ -1939,9 +2372,9 @@ function openSettingsSheet() {
       <div class="field-row"><label>Indoor humidity high (%)</label><input id="setHumMax" type="number" value="${s.indoorHumMax}" /></div>
       <div class="field-row"><label>Stale after (min)</label><input id="setStale" type="number" value="${s.staleMinutes}" /></div>
       <div class="field-row"><label>Offline after (min)</label><input id="setOffline" type="number" value="${s.offlineMinutes}" /></div>
-      <div class="field-row"><label>Sample interval (min)</label><input id="setSample" type="number" value="${s.sampleMinutes}" /></div>
       <div class="field-row"><label>Gap threshold (min)</label><input id="setGap" type="number" value="${s.gapMinutes}" /></div>
       <div class="field-row"><label>Auto refresh (sec)</label><input id="setRefresh" type="number" value="${s.refreshSeconds}" /></div>
+      <div class="field-row"><label>Default chart hours</label><input id="setChartH" type="number" value="${s.chartDefaultHours}" /></div>
       <div class="field-row"><label>Private API token (64-hex)</label><input id="setToken" type="password" value="${esc(state.token)}" placeholder="Paste token…" autocomplete="off" /></div>
     </div>
     <button class="btn primary full" id="saveSettingsBtn">Save settings</button>
@@ -1954,9 +2387,10 @@ function openSettingsSheet() {
       indoorHumMax: +$('setHumMax').value || 75,
       staleMinutes: +$('setStale').value || 5,
       offlineMinutes: +$('setOffline').value || 15,
-      sampleMinutes: +$('setSample').value || 1,
+      sampleMinutes: 1,
       gapMinutes: +$('setGap').value || 5,
-      refreshSeconds: Math.max(30, +$('setRefresh').value || 120)
+      refreshSeconds: Math.max(30, +$('setRefresh').value || 120),
+      chartDefaultHours: Math.max(1, +$('setChartH').value || 3)
     };
     state.token = $('setToken').value.trim();
     saveSettings(); saveToken(state.token);
@@ -1966,6 +2400,7 @@ function openSettingsSheet() {
     renderAll();
   });
 }
+
 function openQualitySheet() {
   const pts = state.filteredPoints;
   const intervals = [];
@@ -1975,18 +2410,17 @@ function openQualitySheet() {
   const allFields = Object.keys(FIELD_NAMES);
   const total = pts.length * allFields.length;
   const missing = pts.reduce((s, p) => s + allFields.filter(f => p[f] == null).length, 0);
-
   openSheet(`
     <button class="sheet-close" onclick="closeSheet()">✕</button>
     <div class="sheet-title">Data quality</div>
-    <div class="sheet-desc">Coverage, intervals and completeness for the selected window (${esc(rangeLabel())}).</div>
-    <div class="stat-grid" style="grid-template-columns: repeat(2, 1fr); gap: 10px;">
+    <div class="sheet-desc">Coverage, intervals and completeness for ${esc(rangeLabel())}.</div>
+    <div class="stat-grid" style="grid-template-columns:repeat(2,1fr); gap:10px;">
       <div class="stat-box"><div class="stat-box-label">Packets</div><div class="stat-box-value">${pts.length.toLocaleString()}</div></div>
       <div class="stat-box"><div class="stat-box-label">Avg interval</div><div class="stat-box-value">${avgInterval != null ? avgInterval.toFixed(1) + 'm' : '—'}</div></div>
       <div class="stat-box"><div class="stat-box-label">Longest gap</div><div class="stat-box-value">${longest != null ? formatDuration(longest) : '—'}</div></div>
       <div class="stat-box"><div class="stat-box-label">Missing fields</div><div class="stat-box-value">${total ? ((missing/total)*100).toFixed(1) + '%' : '—'}</div></div>
       <div class="stat-box"><div class="stat-box-label">Interruptions</div><div class="stat-box-value">${state.filteredGaps.length}</div></div>
-      <div class="stat-box"><div class="stat-box-label">Sensor coverage</div><div class="stat-box-value">${pts.length ? '100%' : '0%'}</div></div>
+      <div class="stat-box"><div class="stat-box-label">Coverage</div><div class="stat-box-value">${pts.length ? '100%' : '0%'}</div></div>
     </div>
   `);
 }
@@ -1998,16 +2432,14 @@ function openDeviceConfigSheet() {
     ['Matrix effect', cfg.matrixEffect ? `Preset ${cfg.matrixEffect} of 52` : 'Not synced'],
     ['Matrix brightness', cfg.matrixBrightness ?? 'Not synced'],
     ['24-hour clock', cfg.clock24Hour === true || cfg.clock24Hour === 'true' ? 'Yes' : (cfg.clock24Hour === false || cfg.clock24Hour === 'false' ? 'No' : 'Not synced')],
-    ['Night palette', cfg.matrixNightPalette ?? 'Not synced'],
-    ['Presence sleep', cfg.presenceSleepEnabled === true || cfg.presenceSleepEnabled === 'true' ? 'Enabled' : (cfg.presenceSleepEnabled === false || cfg.presenceSleepEnabled === 'false' ? 'Disabled' : 'Not synced')],
     ['Room names', [cfg.roomAHT10,cfg.roomDHT22,cfg.roomDHT11,cfg.roomDS18B20].filter(Boolean).join(' / ') || 'Not synced']
   ];
   openSheet(`
     <button class="sheet-close" onclick="closeSheet()">✕</button>
     <div class="sheet-title">Device configuration</div>
-    <div class="sheet-desc">${state.privateData ? 'Read-only snapshot from the OLED settings.' : 'Configure the private API token in Settings to sync device configuration.'}</div>
+    <div class="sheet-desc">${state.privateData ? 'Read-only snapshot.' : 'Add a private API token in Settings to sync.'}</div>
     <div class="more-list">
-      ${entries.map(([k, v]) => `<div class="more-item" style="cursor: default;"><div class="more-text"><div class="more-title" style="font-size:12px;">${esc(k)}</div></div><div class="mono" style="color:var(--text-2); font-size:12px;">${esc(v)}</div></div>`).join('')}
+      ${entries.map(([k, v]) => `<div class="more-item" style="cursor:default;"><div class="more-text"><div class="more-title" style="font-size:12px;">${esc(k)}</div></div><div class="mono" style="color:var(--text-2);font-size:12px;">${esc(v)}</div></div>`).join('')}
     </div>
   `);
 }
@@ -2023,12 +2455,11 @@ function openHealthSheet() {
     return;
   }
   const sorted = [...rows].sort((a, b) => new Date(b.Timestamp) - new Date(a.Timestamp));
-  const people = [...new Set(sorted.map(r => r.Person).filter(Boolean))];
   openSheet(`
     <button class="sheet-close" onclick="closeSheet()">✕</button>
     <div class="sheet-title">Pulse & SpO₂</div>
-    <div class="sheet-desc">${sorted.length} readings across ${people.length} profile(s). MAX30102 estimates — not medical grade.</div>
-    <div class="table-wrap" style="max-height: 55vh;">
+    <div class="sheet-desc">${sorted.length} readings. MAX30102 estimates — not medical grade.</div>
+    <div class="table-wrap" style="max-height:55vh;">
       <table>
         <thead><tr><th>Time</th><th>Person</th><th>BPM</th><th>SpO₂</th></tr></thead>
         <tbody>${sorted.slice(0, 200).map(r => `<tr><td>${esc(new Date(r.Timestamp).toLocaleString())}</td><td>${esc(r.Person || '—')}</td><td>${fmt(r['Heart Rate BPM'], 1)}</td><td>${fmt(r['SpO2 %'], 1)}</td></tr>`).join('')}</tbody>
@@ -2040,7 +2471,7 @@ function openExportSheet() {
   openSheet(`
     <button class="sheet-close" onclick="closeSheet()">✕</button>
     <div class="sheet-title">Export data</div>
-    <div class="sheet-desc">CSV of the ${state.filteredPoints.length.toLocaleString()} packets in the selected window (${esc(rangeLabel())}).</div>
+    <div class="sheet-desc">CSV of the ${state.filteredPoints.length.toLocaleString()} packets in ${esc(rangeLabel())}.</div>
     <button class="btn primary full" id="doExportBtn">Download CSV</button>
   `);
   $('doExportBtn').addEventListener('click', () => {
@@ -2068,97 +2499,21 @@ function openRangeSheet() {
     <button class="sheet-close" onclick="closeSheet()">✕</button>
     <div class="sheet-title">Time window</div>
     <div class="sheet-desc">Applied to charts, events and statistics.</div>
-    <div class="more-list" style="margin-bottom: 16px;">
+    <div class="more-list">
       ${options.map(([v, l]) => `
         <button class="more-item" data-range="${v}">
           <div class="more-text"><div class="more-title">${l}</div></div>
-          <div class="more-chev">${state.range === v ? '✓' : ''}</div>
+          <div class="more-chev" style="${state.range === v ? 'color:var(--cyan)' : ''}">${state.range === v ? '✓' : ''}</div>
         </button>`).join('')}
     </div>
-    <div class="field-row" style="margin-bottom: 8px;"><label>Custom range</label></div>
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px;">
-      <input id="customFrom" type="date" value="${state.customRange?.start || ''}" style="padding: 10px; border-radius: 10px; background: var(--card); border: 1px solid var(--border-strong); color: var(--text); font-size: 12px;" />
-      <input id="customTo" type="date" value="${state.customRange?.end || ''}" style="padding: 10px; border-radius: 10px; background: var(--card); border: 1px solid var(--border-strong); color: var(--text); font-size: 12px;" />
-    </div>
-    <button class="btn primary full" id="applyCustomBtn">Apply custom range</button>
   `);
   document.querySelectorAll('[data-range]').forEach(b => b.addEventListener('click', () => {
     state.range = b.dataset.range;
     closeSheet();
+    document.querySelectorAll('#chartRangeSeg button').forEach(x => x.classList.toggle('active', x.dataset.range === state.range));
     applyFilter();
     renderAll();
   }));
-  $('applyCustomBtn').addEventListener('click', () => {
-    const from = $('customFrom').value, to = $('customTo').value;
-    if (from && to) {
-      state.customRange = { start: from, end: to };
-      state.range = 'custom';
-      closeSheet();
-      applyFilter();
-      renderAll();
-    }
-  });
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   FETCH
-   ═══════════════════════════════════════════════════════════════ */
-async function fetchData(manual = false) {
-  if (state.busy) return;
-  state.busy = true;
-  const btn = $('refreshBtn');
-  btn.classList.add('spinning');
-  setConnection('', 'Syncing…');
-  try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 20000);
-    const res = await fetch(API_URL, { cache: 'no-store', signal: ctrl.signal, headers: { 'Accept': 'application/json' } });
-    clearTimeout(timer);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const payload = await res.json();
-    const parsed = parseSheet(payload);
-    state.allPoints = parsed.dataPoints;
-    state.explicitGaps = parsed.gaps;
-    state.apiError = '';
-    state.lastSync = new Date();
-    applyFilter();
-    renderAll();
-    setConnectionFromData();
-    if (state.token) fetchPrivate();
-    if (manual) showToast(`Synced ${state.allPoints.length.toLocaleString()} records`);
-    $('footerStatus').textContent = `Synced ${state.lastSync.toLocaleTimeString()} · ${state.allPoints.length.toLocaleString()} packets`;
-  } catch (e) {
-    state.apiError = e.name === 'AbortError' ? 'Timeout after 20s' : e.message;
-    setConnection('off', 'API error');
-    if (manual) showToast('Sync failed: ' + state.apiError);
-  } finally {
-    state.busy = false;
-    btn.classList.remove('spinning');
-  }
-}
-async function fetchPrivate() {
-  if (!state.token) { state.privateData = null; return; }
-  try {
-    const url = `${API_URL}?action=dashboard&token=${encodeURIComponent(state.token)}&t=${Date.now()}`;
-    const res = await fetch(url, { cache: 'no-store', headers: { 'Accept': 'application/json' } });
-    const data = await res.json();
-    if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
-    state.privateData = data;
-    state.privateApiError = '';
-  } catch (e) {
-    state.privateApiError = e.message;
-    state.privateData = null;
-  }
-}
-
-/* ═══════════════════════════════════════════════════════════════
-   REFRESH LOOP
-   ═══════════════════════════════════════════════════════════════ */
-function scheduleRefresh() {
-  clearInterval(state.refreshTimer);
-  state.refreshTimer = setInterval(() => {
-    if (document.visibilityState === 'visible') fetchData(false);
-  }, Math.max(30, state.settings.refreshSeconds) * 1000);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2180,8 +2535,15 @@ function renderAll() {
   $('rangeChip').textContent = rangeLabel() + ' ▾';
   renderHome();
   renderSensors();
-  if (state.tab === 'charts') renderCharts();
+  if (state.tab === 'charts') renderChart();
   if (state.tab === 'events') renderEvents();
+}
+
+function scheduleRefresh() {
+  clearInterval(state.refreshTimer);
+  state.refreshTimer = setInterval(() => {
+    if (document.visibilityState === 'visible') fetchData(false);
+  }, Math.max(30, state.settings.refreshSeconds) * 1000);
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2190,29 +2552,46 @@ function renderAll() {
 function init() {
   state.settings = loadSettings();
   state.token = loadToken();
+  try {
+    const lpT = parseInt(localStorage.getItem(LAST_EVENT_KEY) || '0', 10);
+    if (lpT) state.lastProcessedTime = lpT;
+  } catch {}
 
   document.querySelectorAll('.tab-btn').forEach(b => b.addEventListener('click', () => switchTab(b.dataset.tab)));
-  document.querySelectorAll('[data-tab]').forEach(el => { if (el.classList.contains('tab-btn')) el.addEventListener('click', () => switchTab(el.dataset.tab)); });
-
   $('refreshBtn').addEventListener('click', () => fetchData(true));
   $('rangeChip').addEventListener('click', openRangeSheet);
+  $('notifBtn').addEventListener('click', () => {
+    if ('Notification' in window && Notification.permission === 'granted') {
+      openNotifsSheet();
+    } else {
+      requestNotificationPermission().then(ok => {
+        if (ok) { openNotifsSheet(); showToast('Notifications enabled'); }
+        else openNotifsSheet();
+      });
+    }
+  });
 
-  /* Charts screen */
+  // Chart controls
   document.querySelectorAll('#chartRangeSeg button').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('#chartRangeSeg button').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
     state.range = b.dataset.range;
     $('rangeChip').textContent = rangeLabel() + ' ▾';
     applyFilter();
-    renderCharts();
     renderAll();
   }));
   $('chartSensor').addEventListener('change', (e) => {
     state.sensor = e.target.value;
-    renderCharts();
+    state.chartZoom = null;
+    renderChart();
+    renderSensors();
   });
+  $('zoomInBtn').addEventListener('click', zoomIn);
+  $('zoomOutBtn').addEventListener('click', zoomOut);
+  $('zoomFitBtn').addEventListener('click', zoomFit);
+  initNavigator();
 
-  /* Events screen */
+  // Event tabs
   document.querySelectorAll('#eventSeg button').forEach(b => b.addEventListener('click', () => {
     document.querySelectorAll('#eventSeg button').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
@@ -2220,36 +2599,39 @@ function init() {
     renderEvents();
   }));
 
-  /* More screen */
+  // More items
   $('openSettings').addEventListener('click', openSettingsSheet);
   $('openQuality').addEventListener('click', openQualitySheet);
   $('openHealth').addEventListener('click', openHealthSheet);
   $('openDeviceConfig').addEventListener('click', openDeviceConfigSheet);
   $('openExport').addEventListener('click', openExportSheet);
+  $('openNotifs').addEventListener('click', () => {
+    if ('Notification' in window && Notification.permission === 'granted') openNotifsSheet();
+    else requestNotificationPermission().then(() => openNotifsSheet());
+  });
 
-  /* Install gesture hints */
+  updateNotifUI();
+  fetchData(true);
+  scheduleRefresh();
+
+  let resizeT = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(() => { if (state.tab === 'charts') renderChart(); }, 250);
+  });
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible' && state.lastSync && (Date.now() - state.lastSync.getTime()) > 60000) {
       fetchData(false);
     }
-  });
-
-  /* Initial fetch + auto refresh */
-  fetchData(true);
-  scheduleRefresh();
-
-  /* Re-render charts on resize (orientation) */
-  let resizeT = null;
-  window.addEventListener('resize', () => {
-    clearTimeout(resizeT);
-    resizeT = setTimeout(() => { if (state.tab === 'charts') renderCharts(); }, 250);
   });
 }
 
 window.addEventListener('DOMContentLoaded', init);
 window.closeSheet = closeSheet;
 window.switchTab = switchTab;
-window.renderCharts = renderCharts;
+window.renderChart = renderChart;
+window.requestNotificationPermission = requestNotificationPermission;
+window.fireNotification = fireNotification;
 </script>
 </body>
 </html>
